@@ -3,7 +3,7 @@
 @inputs [Main_Keyboard Password]:string [FuelBoost]:entity Console:wirelink Targetting
 @inputs TardisFlightSpeed
 @outputs [Tardis_Code]:string CorePrimed [XYZ TardisChatColor]:vector Fuel_Percent ShieldPower 
-@persist [Tardis Owner Interior Companion]:entity [TardisName ArtronFuel ChipActive]:string Dist Damage TardisPhase Phase DoOnce Use Speed AutoLocks
+@persist [Tardis Owner Interior Companion]:entity [TardisName ChipActive]:string Dist Damage TardisPhase Phase DoOnce Use Speed AutoLocks
 @persist Autospin SkinT DoOnce2 Extrapolator_Shielding ShieldPower Fuel Trans FuelAbsorb Disguise KeyUse Asked Booted
 @persist #[Companents]# Chronometric_Astrometer Red_Thermocouplings Manual_Navigations Isomorphic_Circuitry Fluid_Links Chameleon_Circuit 
 @persist #[Components]# Blue_Thermocouplings Green_Thermocouplings Artron_Capacitor Forcefield_Generator 
@@ -36,9 +36,10 @@ else
 }
 
 #[ Chip Version ]#
-Version = "v5.6"
+Version = "v5.8"
 
-if(first())
+
+if(clk("Check Updates"))
 {
     #[ Version Check (SEND REQUEST) ]#
     if(httpCanRequest())
@@ -116,8 +117,7 @@ if(first())
 
 
 if(ChipActive == "true") 
-{
-    ArtronFuel = "true"
+{    
     interval(60)
     runOnHTTP(1)
     runOnChat(1)
@@ -125,7 +125,7 @@ if(ChipActive == "true")
     LastSaid = Owner:lastSaid():lower():explode(" ")
     LastSaid1 = LastSaid:string(1)
 
-#[ AutoUpdater By: GrimKriegor ]#
+#[ AutoUpdater First By: GrimKriegor, Redone for this chip by: Midnight Sapphire ]#
     #[ Version Check ]#
 	   if (httpClk() & httpRequestUrl()=="https://raw.githubusercontent.com/SaphiaMidnight/project-blitz/master/VERSION")
     {
@@ -263,16 +263,16 @@ if(ChipActive == "true")
     {
         printColor(TardisChatColor,""+TardisName+": Tardis main systems rebooted.")
         Tardis:tardisPower()
-        printColor(TardisChatColor,""+TardisName+": Booting secondary systems and scanning for server name and other players..")
+        printColor(TardisChatColor,""+TardisName+": Booting secondary systems..")
         timer("Secondary", 4000)
-        timer("Singleplayer?", 8000)
     }
     if(clk("Secondary"))
     {
         Booted = 1
-        printColor(TardisChatColor,""+TardisName+": Tardis secondary systems booted.")
+        printColor(TardisChatColor,""+TardisName+": Tardis secondary systems booted. Scanning for server name..")
         timer("Holograms", 2000)
-        timer("Auto Door Locks?", 10000)
+        timer("Singleplayer?", 4000)
+        timer("Auto Door Locks?", 8000)
     }
     if(clk("Singleplayer?")) 
     {
@@ -282,36 +282,28 @@ if(ChipActive == "true")
         }
         else
         {
-            printColor(TardisChatColor,""+TardisName+": Please keep me safe. Don't do something stupid... or let anyone but your companions touch me.")
+            printColor(TardisChatColor,""+TardisName+": We are in the "+Status[4,string]+" server. Please keep me safe. Don't do something stupid... or let anyone but your companions touch me.")
             entity():setAlpha(0)
-            timer("Server", 3000)
-            timer("Others", 6000)
         }
-    }
-    if(clk("Server")) 
-    {
-        printColor(TardisChatColor,""+TardisName+": We are in the "+Status[4,string]+" server.")
-    }
-    if(clk("Others"))
-    {
-        printColor(TardisChatColor,""+TardisName+": And, my scanners detect "+Status[3,number]+" other players in this server.")
     }
     if(clk("Auto Door Locks?")) 
     {
-        printColor(TardisChatColor,""+TardisName+": Also, would you like to activate auto door locking? (primary fire = yes/secondary = no)")
+        printColor(TardisChatColor,""+TardisName+": Also, would you like to activate auto door locking? (!auto/!manual)")
         Asked = 1
     }
+    
 #[ Auto Locking Answer ]#
 
     if(Asked == 1)
     {
-        if(Owner:keyAttack1())
+        hideChat(1)
+        if(LastSaid1 == "!auto")
         {
             AutoLocks = 1
             printColor(TardisChatColor,""+TardisName+": Aright, door auto lock enabled.")
             Asked = 0
         }
-        if(Owner:keyAttack2())
+        if(LastSaid1 == "!manual")
         {
             AutoLocks = 0
             printColor(TardisChatColor,""+TardisName+": Aright, door auto lock disabled. Manual control only.")
@@ -323,7 +315,7 @@ if(ChipActive == "true")
     
     if(clk("Holograms")) 
     {
-        printColor(TardisChatColor,""+TardisName+": Activating Holographic Systems Status.")
+        printColor(TardisChatColor,""+TardisName+": Holographic Systems Online.")
 #[ Tardis Shield ]#
         holoCreate(1)
         holoModel(1,"hq_icosphere")
@@ -480,11 +472,7 @@ if(ChipActive == "true")
                 FuelAbsorb = 255
             }
         }
-        
-        if(ArtronFuel == "true") 
-        {
-            artron()
-        }
+artron()
         
     #[ Hitting Debris ]#
         
@@ -913,7 +901,7 @@ if(ChipActive == "true")
         
     
     #[ Component Damage and Repair ]#
-        function taridsComponents()
+        function tardisComponents()
         {
             #[ Component Self Repair Systems ]#
             
@@ -998,7 +986,7 @@ if(ChipActive == "true")
             
 #[ Components Wear-and-Tear ]#
         
-#[ Tardis Powered ]#
+            #[ Tardis Powered ]#
             
             if(Tardis:tardisPowered()) 
             {
@@ -1127,6 +1115,7 @@ if(ChipActive == "true")
                 }
             }
         }
+tardisComponents()
     }
 
 #[ Console Status Screen ]#

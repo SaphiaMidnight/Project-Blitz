@@ -154,7 +154,7 @@ if(ChipActive == "true")
     }
     if(clk("motd"))
     {
-        hint("Message from Grim: "+MOTD,7) , entity():soundPlay(1,0,"ui/buttonrollover.wav")
+        hint("Message from Sapphie: "+MOTD,7) , entity():soundPlay(1,0,"ui/buttonrollover.wav")
     }
     ## Chat Triggers ---------------------------------------------
     if (chatClk(Owner))

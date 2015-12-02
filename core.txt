@@ -36,10 +36,7 @@ else
 }
 
 #[ Chip Version ]#
-Version = "v5.5"
-
-
-
+Version = "v5.6"
 
 if(first())
 {
@@ -123,6 +120,10 @@ if(ChipActive == "true")
     ArtronFuel = "true"
     interval(60)
     runOnHTTP(1)
+    runOnChat(1)
+
+    LastSaid = Owner:lastSaid():lower():explode(" ")
+    LastSaid1 = LastSaid:string(1)
 
 #[ AutoUpdater By: GrimKriegor ]#
     #[ Version Check ]#
@@ -159,7 +160,7 @@ if(ChipActive == "true")
     {
 
     #Updater & Related --------------------------------------------------
-        if (Owner:lastSaid() == "!update")
+        if (LastSaid1 == "!update")
         {
             hideChat(1)
             timer("update",10000)

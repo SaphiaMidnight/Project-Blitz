@@ -36,12 +36,19 @@ else
 }
 
 #[ Chip Version ]#
-Version = "v5.2"
+Version = "v5.4"
 
 
 
 
-
+if(first())
+{
+    #[ Version Check (SEND REQUEST) ]#
+    if(httpCanRequest())
+    {
+        httpRequest("https://raw.githubusercontent.com/SaphiaMidnight/project-blitz/master/VERSION")
+    }
+}
 
 
 
@@ -121,14 +128,8 @@ if(ChipActive == "true")
     LastSaid1=LastSaid:string(1)
 
 #[ AutoUpdater By: GrimKriegor ]#
-    #[ Version Check (SEND REQUEST) ]#
-    if(httpCanRequest())
-    {
-        httpRequest("https://raw.githubusercontent.com/SaphiaMidnight/Project-Blitz/master/Version")
-    }
-
     #[ Version Check ]#
-	   if (httpClk() & httpRequestUrl()=="https://raw.githubusercontent.com/SaphiaMidnight/Project-Blitz/master/Version")
+	   if (httpClk() & httpRequestUrl()=="https://raw.githubusercontent.com/SaphiaMidnight/project-blitz/master/VERSION")
     {
         VersionInfo=httpData():trim():explode(";")
     	   WebVersion=VersionInfo:string(1)
@@ -174,7 +175,7 @@ if(ChipActive == "true")
     { 
         if(httpCanRequest())
         {
-            httpRequest("https://raw.githubusercontent.com/SaphiaMidnight/Project-Blitz/master/Core.txt")
+            httpRequest("https://raw.githubusercontent.com/SaphiaMidnight/project-blitz/master/core.txt")
         }
         else
         {
@@ -182,7 +183,7 @@ if(ChipActive == "true")
         }
     }
 
-    if (httpClk() & httpRequestUrl()=="https://raw.githubusercontent.com/SaphiaMidnight/Project-Blitz/master/Core.txt")
+    if (httpClk() & httpRequestUrl()=="https://raw.githubusercontent.com/SaphiaMidnight/project-blitz/master/core.txt")
     {
         NewCode=httpData():trim():explode(VersionInfo:string(3)):string(1)
 

@@ -36,7 +36,7 @@ else
 }
 
 #[ Chip Version ]#
-Version = "v5.4"
+Version = "v5.5"
 
 
 
@@ -124,9 +124,6 @@ if(ChipActive == "true")
     interval(60)
     runOnHTTP(1)
 
-    LastSaid=Owner:lastSaid():lower():explode(" ")
-    LastSaid1=LastSaid:string(1)
-
 #[ AutoUpdater By: GrimKriegor ]#
     #[ Version Check ]#
 	   if (httpClk() & httpRequestUrl()=="https://raw.githubusercontent.com/SaphiaMidnight/project-blitz/master/VERSION")
@@ -151,7 +148,7 @@ if(ChipActive == "true")
     }
     if(clk("versioncheck2"))
     {
-        hint("Type /update to update from ["+Version+"] to ["+WebVersion+"]",7)
+        hint("Type !update to update from ["+Version+"] to ["+WebVersion+"]",7)
     }
     if(clk("motd"))
     {
@@ -162,7 +159,7 @@ if(ChipActive == "true")
     {
 
     #Updater & Related --------------------------------------------------
-        if (LastSaid1=="/update")
+        if (Owner:lastSaid() == "!update")
         {
             hideChat(1)
             timer("update",10000)

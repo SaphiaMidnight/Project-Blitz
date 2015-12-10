@@ -1,13 +1,12 @@
 @name Tardis Personality Core
-@model models/spacecode/sfchip.mdl
+@model models/cheeze/wires/cpu2.mdl
 @inputs [Main_Keyboard Password]:string [FuelBoost]:entity Console:wirelink Targetting
-@inputs TardisFlightSpeed
-@outputs [Tardis_Code]:string CorePrimed [XYZ TardisChatColor]:vector Fuel_Percent ShieldPower 
-@persist [Tardis Owner Interior Companion]:entity [TardisName ChipActive]:string Dist Damage TardisPhase Phase DoOnce Use Speed AutoLocks
+@outputs [Tardis_Code TardisName]:string [XYZ TardisChatColor]:vector Fuel_Percent ShieldPower 
+@persist [Tardis Owner Interior Companion]:entity [TardisName ChipActive]:string Dist Damage TardisPhase Phase DoOnce Use Speed AutoLock
 @persist Autospin SkinT DoOnce2 Extrapolator_Shielding ShieldPower Fuel Trans FuelAbsorb Disguise KeyUse Asked Booted
 @persist #[Companents]# Chronometric_Astrometer Red_Thermocouplings Manual_Navigations Isomorphic_Circuitry Fluid_Links Chameleon_Circuit 
 @persist #[Components]# Blue_Thermocouplings Green_Thermocouplings Artron_Capacitor Forcefield_Generator 
-@persist [Version WebVersion MOTD]:string Update NewCode:string VersionInfo:array
+@persist [Version WebVersion MOTD NewCode]:string Update VersionInfo:array
 @trigger all
 
 #[ Tardis Exterior/Interior and Owner Definitions ]#
@@ -21,10 +20,6 @@ OwnerExteriorDis = Owner:pos():distance(Tardis:pos())
 ExteriorDis = Tardis:pos():distance(Interior:pos())
 InteriorP = Interior:pos()
 
-#[ Flight Times ]#
-TwoMinutes = 120000
-FourMinutes = 240000
-
 #[ Toggles Chip ]#
 if(Tardis:isValid() & Interior:isValid())
 {
@@ -36,7 +31,7 @@ else
 }
 
 #[ Chip Version ]#
-Version = "v5.8"
+Version = "v6.0"
 
 
 if(clk("Check Updates"))
@@ -158,7 +153,6 @@ if(ChipActive == "true")
     ## Chat Triggers ---------------------------------------------
     if (chatClk(Owner))
     {
-
     #Updater & Related --------------------------------------------------
         if (LastSaid1 == "!update")
         {
@@ -223,7 +217,6 @@ if(ChipActive == "true")
     {   
         TardisName = "Blitz"
         TardisChatColor = vec(0,208,255)
-        TardisFlightSpeed = TwoMinutes
         
         Fluid_Links = 100
         Manual_Navigations = 100
@@ -887,7 +880,7 @@ artron()
             
         if(Tardis:tardisInVortex()) 
         {
-            timer("Land",TardisFlightSpeed)
+            timer("Land",120000)
         }
         else
         {

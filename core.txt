@@ -1,13 +1,16 @@
 @name Tardis Personality Core
-@model models/cheeze/wires/cpu2.mdl
-@inputs [Main_Keyboard Password]:string [FuelBoost]:entity Console:wirelink Targetting
-@outputs [Tardis_Code TardisName]:string [XYZ TardisChatColor]:vector Fuel_Percent ShieldPower 
+@model models/bull/gates/processor.mdl
+@inputs [Main_Keyboard]:string [FuelBoost]:entity Console:wirelink Targetting 
+@outputs [Tardis_Code TardisName]:string [XYZ TardisChatColor]:vector Fuel_Percent ShieldPower HologramsActive Extrapolator_Shielding Status:array
 @persist [Tardis Owner Interior Companion]:entity [TardisName ChipActive]:string Dist Damage TardisPhase Phase DoOnce Use Speed AutoLock
-@persist Autospin SkinT DoOnce2 Extrapolator_Shielding ShieldPower Fuel Trans FuelAbsorb Disguise KeyUse Asked Booted
+@persist Autospin SkinT DoOnce2 Extrapolator_Shielding ShieldPower Fuel Trans FuelAbsorb Disguise KeyUse Asked Booted Loop RSLoop
 @persist #[Companents]# Chronometric_Astrometer Red_Thermocouplings Manual_Navigations Isomorphic_Circuitry Fluid_Links Chameleon_Circuit 
 @persist #[Components]# Blue_Thermocouplings Green_Thermocouplings Artron_Capacitor Forcefield_Generator 
 @persist [Version WebVersion MOTD NewCode]:string Update VersionInfo:array
 @trigger all
+
+#[ Chip Version ]#
+Version = "v7.6"
 
 #[ Tardis Exterior/Interior and Owner Definitions ]#
 Tardis = entity():isConstrainedTo():tardisGet()
@@ -30,10 +33,6 @@ else
     printColor(vec(255,0,0), "Chip is not connected to a Tardis, shutting down.")
 }
 
-#[ Chip Version ]#
-Version = "v6.0"
-
-
 if(clk("Check Updates"))
 {
     #[ Version Check (SEND REQUEST) ]#
@@ -43,76 +42,8 @@ if(clk("Check Updates"))
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if(ChipActive == "true") 
-{    
+{
     interval(60)
     runOnHTTP(1)
     runOnChat(1)
@@ -192,18 +123,48 @@ if(ChipActive == "true")
     }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #[ Continue Timers ]#
 
     timer("use", 500)    
 
 #[ Variables ]#
     
-    Speed = Tardis:vel():length() 
-    MPH = toUnit("mph",Speed)
+    if(Tardis:tardisPilot():isValid())
+    {
+        TardisName = Tardis:tardisPilot():name()
+    }
+    else
+    {
+        TardisName = "Blitz"
+    }
+    
+    Speed = Tardis:vel():length()
     Tardis:createWire(entity(),"XYZ","XYZ")
     T = round(random(1,1000))
-    Extrapolator_Shielding = 0
+    Extrapolator_Shielding = 1
     Use = owner():keyUse()
+    if(isSinglePlayer() == 0)
+    {
+        findByClass("player")
+        findExcludePlayer(Owner)
+        findExcludeEntity(Companion)
+        Player = findResult(1)
+        Dist2 = Player:pos():distance(Tardis:pos())
+    }
     
 #[ Arrays ]#
     
@@ -215,7 +176,6 @@ if(ChipActive == "true")
 #[ Start of the code ]#
     if(first()) 
     {   
-        TardisName = "Blitz"
         TardisChatColor = vec(0,208,255)
         
         Fluid_Links = 100
@@ -236,10 +196,14 @@ if(ChipActive == "true")
         Phase = 0
         KeyUse = 0
         DoOnce = 0
+        Loop = 1
+        RSLoop = 1
         Tardis_Code = "H5C?W#3E*" #Who knows what this is for? ;)
-        ShieldPower = round(255)
+        ShieldPower = 255
+        HologramsActive = 0
         Tardis:setBodygroup(1,1)
-        
+																																																	                                                                                                                       hint("Chip made by :Saphia Midnight",20)
+        timer("Reset",1000)
         timer("Tardis Reboot", 1500)
         setName(""+Owner:name()+"'s Tardis Personallity: "+TardisName+"")
     }
@@ -250,6 +214,7 @@ if(ChipActive == "true")
     {
         printColor(TardisChatColor,""+TardisName+": Rebooting Tardis main systems..")
         Tardis:tardisPower()
+        Interior:fastSound("doctorwho1200/copper/rewrite/powerdown.wav", 100)
         timer("Boot", 4000)
     }
     if(clk("Boot"))
@@ -279,73 +244,13 @@ if(ChipActive == "true")
             entity():setAlpha(0)
         }
     }
-    if(clk("Auto Door Locks?")) 
-    {
-        printColor(TardisChatColor,""+TardisName+": Also, would you like to activate auto door locking? (!auto/!manual)")
-        Asked = 1
-    }
     
-#[ Auto Locking Answer ]#
-
-    if(Asked == 1)
-    {
-        hideChat(1)
-        if(LastSaid1 == "!auto")
-        {
-            AutoLocks = 1
-            printColor(TardisChatColor,""+TardisName+": Aright, door auto lock enabled.")
-            Asked = 0
-        }
-        if(LastSaid1 == "!manual")
-        {
-            AutoLocks = 0
-            printColor(TardisChatColor,""+TardisName+": Aright, door auto lock disabled. Manual control only.")
-            Asked = 0
-        }
-    }
-    
-#[ Holograms ]#
+#[ Hologramphic Program Engage (SEPERATE CHIP) ]#
     
     if(clk("Holograms")) 
     {
+        HologramsActive = 1
         printColor(TardisChatColor,""+TardisName+": Holographic Systems Online.")
-#[ Tardis Shield ]#
-        holoCreate(1)
-        holoModel(1,"hq_icosphere")
-        holoPos(1,Interior:toWorld(vec(-26,42,21.5)))
-        holoAng(1,ang(0,0,0))
-        holoScale(1,vec(0.9,0.9,0.9))
-        
-#[ Tardis Status Exterior ]#
-        holoCreate(2)
-        holoModel(2,"models/drmatt/tardis/exterior.mdl")
-        holoParent(2,Interior)
-        holoBodygroup(2,1,1)
-        holoPos(2,Interior:toWorld(vec(-26,42,17.5)))
-        holoScale(2,vec(0.071,0.071,0.071))
-     
-#[ Holographic Security ]#
-        holoCreate(3)
-        holoModel(3,Owner:model())
-        holoAlpha(3,0)
-        holoPos(3,Interior:pos()-vec(-60,-80,47))
-        holoAng(3,ang(0,52,0))
-    
-#[ Tardis Demat Phase ]#
-        holoCreate(4)
-        holoModel(4,"models/drmatt/tardis/exterior.mdl")
-        holoPos(4,Interior:toWorld(vec(-26,42,9)))
-        holoAng(4,ang(0,120,0))
-        holoScale(4,vec(0.07,0.07,0.07))
-        holoBodygroup(4,2,1)
-        holoBodygroup(4,1,1)
-        
-#[ Tardis Status Background ]#
-        holoCreate(5)
-        holoModel(5,"models/drmatt/tardis/exterior.mdl")
-        holoPos(5,Interior:toWorld(vec(-26,42,17.5)))
-        holoMaterial(5,"phoenix_storms/fender_white")
-        holoScale(5,vec(0.07,0.07,0.07))
     }
 
     if(Booted == 1)
@@ -354,7 +259,7 @@ if(ChipActive == "true")
         
         if(Tardis:tardisMoving() || Tardis:tardisFlying()) 
         {
-            if(Tardis:tardisLocked() == 0 && AutoLocks == 1) 
+            if(Tardis:tardisLocked() == 0)
             {
                 Tardis:tardisLock()
             }
@@ -372,27 +277,47 @@ if(ChipActive == "true")
         
         if(clk("use"))
         {
-            if(owner():keyUse())
+            if(owner():keyReload())
             {
-                if(owner():aimEntity() == Tardis && Owner:pos():distance(Tardis:pos()) < 68)
+                if(owner():aimEntity() == Tardis && Owner:pos():distance(Tardis:pos()) < 68 && Owner != Tardis:tardisPilot())
                 {
-                    if(Tardis:tardisLocked())
-                    {
-                        timer("Insert key",1000)
-                    }
+                    timer("Insert key",1000)
                 }
             }
         }
         
         if(clk("Insert key"))
         {
-            Tardis:soundPlay(1.5,2849,"weapons/ar2/npc_ar2_reload.wav")
-            timer("Key unlock",2850)
+            Tardis:fastSound("weapons/ar2/npc_ar2_reload.wav")
+            
+            if(Tardis:tardisLocked())
+            {
+                timer("Key unlock",2850)
+            }
+            else
+            {
+                timer("Key lock",2850)
+            }
         }
         if(clk("Key unlock"))
         {
             printColor(TardisChatColor,""+TardisName+": Doors unlocked using key.")
             Tardis:tardisLock()
+        }
+        
+        if(clk("Key lock"))
+        {
+            if(Tardis:tardisPowered() == 1)
+            {
+                printColor(TardisChatColor,""+TardisName+": Doors locked using key.")
+                Tardis:tardisLock()
+            }
+            else
+            {
+                printColor(TardisChatColor,""+TardisName+": Door lock nonfunctional without power.")
+                Tardis:fastSound("doctorwho1200/copper/rewrite/error.wav",100)
+                Interior:fastSound("doctorwho1200/copper/rewrite/error.wav",100)
+            }
         }
             
     #[ Fueling System ]#
@@ -402,7 +327,10 @@ if(ChipActive == "true")
             Fuel_Percent = round(Fuel)
             if(Fuel > 0) 
             {
-            
+                if(Main_Keyboard == "Dump Fuel")
+                {
+                    Fuel = 1
+                }
                 if(Tardis:tardisPowered()) 
                 {
                     Fuel -= 0.0001
@@ -428,14 +356,14 @@ if(ChipActive == "true")
                     Fuel -= 0.0010
                     Artron_Capacitor -= 0.002
                 }
-                if(Tardis:tardisPowered()==0 && Fuel < 100 && Tardis:tardisIsHADS() && Artron_Capacitor > 0) 
+                if(Tardis:tardisPowered() == 0 && Fuel < 100 && Tardis:tardisIsHADS() && Artron_Capacitor > 0) 
                 {
                     Fuel += 0.020
                     Artron_Capacitor -= 0.003
                 }
             }
                         
-            if(Fuel_Percent == 0 || Artron_Capacitor <= 1 && Tardis:tardisPowered()) 
+            if(Fuel_Percent == 0 && Tardis:tardisPowered() || Artron_Capacitor <= 1) 
             {
                 Tardis:tardisPower()
             }
@@ -459,7 +387,7 @@ if(ChipActive == "true")
                 FuelBoost:setAlpha(FuelAbsorb)
                 Fuel += 0.1
             }
-            if(FuelAbsorb <= 1) 
+            if(FuelAbsorb <= 1)
             {
                 FuelBoost:propDelete()
                 FuelAbsorb = 255
@@ -484,7 +412,7 @@ artron()
             {
                 if(Extrapolator_Shielding == 1) 
                 {
-                    soundPlay(1,10,"stargate/iris/hit.mp3")
+                    Interior:fastSound("stargate/iris/hit.mp3",100)
                     Forcefield_Generator -= 0.001
                     ShieldPower-=1
                 }
@@ -496,6 +424,7 @@ artron()
             {
                 if(Extrapolator_Shielding == 0) 
                 {
+                    Interior:fastSound("doctorwho1200/copper/rewrite/explosion.wav",100)
                     Debris = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,150),ang(0,0,0),1)
                     Debris:setAlpha(0)
                     Debris:propBreak()
@@ -509,7 +438,7 @@ artron()
             {
                 if(Extrapolator_Shielding == 1) 
                 {
-                    soundPlay(2,10,"stargate/iris/hit_2.mp3")
+                    Interior:fastSound("stargate/iris/hit_2.mp3",100)
                     Forcefield_Generator -= 0.003
                     ShieldPower-=2
                 }
@@ -521,6 +450,7 @@ artron()
             {
                 if(Extrapolator_Shielding == 0) 
                 {
+                    Interior:fastSound("doctorwho1200/copper/rewrite/explosion.wav",100)
                     Debris = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,150),ang(0,0,0),1)
                     Debris:setAlpha(0)
                     Debris:propBreak()
@@ -534,7 +464,7 @@ artron()
             {
                 if(Extrapolator_Shielding == 1) 
                 {
-                    soundPlay(3,10,"stargate/iris/hit_3.mp3")
+                    Interior:fastSound("stargate/iris/hit_3.mp3",100)
                     Forcefield_Generator -= 0.004
                     ShieldPower-=2
                 }
@@ -546,6 +476,7 @@ artron()
             {
                 if(Extrapolator_Shielding == 0) 
                 {
+                    Interior:fastSound("doctorwho1200/copper/rewrite/explosion.wav",100)
                     Debris = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,150),ang(0,0,0),1)
                     Debris:setAlpha(0)
                     Debris:propBreak()
@@ -559,7 +490,7 @@ artron()
             {
                 if(Extrapolator_Shielding == 1) 
                 {
-                    soundPlay(4,10,"stargate/iris/hit_4.mp3")
+                    Interior:fastSound("stargate/iris/hit_4.mp3",100)
                     Forcefield_Generator -= 0.006
                     ShieldPower-=4
                 }
@@ -571,6 +502,7 @@ artron()
             {
                 if(Extrapolator_Shielding == 0) 
                 {
+                    Interior:fastSound("doctorwho1200/copper/rewrite/explosion.wav",100)
                     Debris = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,150),ang(0,0,0),1)
                     Debris2 = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,100),ang(0,0,0),1)
                     Debris3 = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,50),ang(0,0,0),1)
@@ -591,7 +523,7 @@ artron()
         
         if(T == 100) 
         {
-            if(Status[1,number] < 1) 
+            if(Status[1,number] < 1)
             {
                 Debris4 = propSpawn("models/props_junk/propane_tank001a.mdl",Interior:pos()+vec(0,0,0),ang(0,0,0),1)
                 Debris4:setAlpha(0)
@@ -608,89 +540,30 @@ artron()
                 Debris4:propBreak()
             }
         }
-        
-    #[ Tardis Status Holo ]#
-        
-        if(Status[1,number] > 50 && Tardis:tardisHealth() < 101)
+        #[ Deep Interior Explosions ]#
+        if(T == 200 || T == 400)
         {
-            holoColor(2,vec(21,255,14))
-            holoAlpha(2,170)
-        }
-        elseif(Status[1,number] > 20 && Tardis:tardisHealth() < 51)
-        {
-            holoColor(2,vec(255,150,0))
-            holoAlpha(2,170)
-        }
-        elseif(Status[1,number] < 21 && Tardis:tardisHealth() > 0)
-        {
-            holoColor(2,vec(255,0,0))
-            holoAlpha(2,170)
-        }
-        elseif(Status[1,number] == 0)
-        {
-            holoColor(2,vec(random(100,250),random(0,10),random(12,22)))
-            holoAlpha(2,random(10,200))
-        }
-        
-        if(Fuel_Percent > 50 && Fuel_Percent < 101)
-        {
-            holoColor(5,vec(21,255,14))
-        }
-        elseif(Fuel_Percent > 20 && Fuel_Percent < 51)
-        {
-            holoColor(5,vec(255,150,0))
-        }
-        elseif(Fuel_Percent < 21 && Fuel_Percent > 0)
-        {
-            holoColor(5,vec(255,0,0))
-        }
-        elseif(Fuel_Percent == 0)
-        {
-            holoColor(5,vec(random(100,250),random(0,10),random(12,22)))
-        }
-        
-        if(Tardis:tardisMoving() == 1) 
-        {
-            if(Tardis:tardisInVortex() == 0) 
+            if(Status[1,number] < 1)
             {
-                holoAlpha(1,30)
+                Interior:fastSound("ambient/explosions/exp1.wav",100)
+            }
+        }
+        if(T == 201 || T == 300)
+        {
+            if(Status[1,number] < 1)
+            {
+                Interior:fastSound("ambient/explosions/exp2.wav",100)
+            }
+        }
+        if(T == 202 || T == 500)
+        {
+            if(Status[1,number] < 1)
+            {
+                Interior:fastSound("ambient/explosions/exp3.wav",100)
             }
         }
         
-        if(Tardis:tardisInVortex() && Extrapolator_Shielding == 1) 
-        {
-            holoAlpha(1,ShieldPower)
-        }
-        
-        if(Tardis:tardisInVortex() == 0 && Tardis:tardisMoving() == 0) 
-        {
-            holoAlpha(1,0)
-        }
-    #[ Shield Hologram ]#
-        
-        if(Extrapolator_Shielding == 1) 
-        {
-            holoColor(1,vec(65,206,255))
-        }
-        else
-        {
-            holoAlpha(1,0)
-        }
-        
-    #[ Tardis HoloStatus ]#
-        
-        holoAng(2,Tardis:angles())
-        holoSkin(2,Tardis:getSkin())
-        
-        if(Tardis:tardisPowered() == 1) 
-        {
-            holoBodygroup(2,2,1)
-        }
-        if(Tardis:tardisPowered() == 0) 
-        {
-            holoBodygroup(2,2,0)
-        }
-        
+    
     #[ Interior Landing & No Pilot Landing ]#
         
         if(Tardis:tardisInVortex() && OwnerInteriorDis > 800) 
@@ -716,55 +589,11 @@ artron()
             }
         }
         
-        if(Main_Keyboard=="Wibbly Lever" && Tardis:tardisPhyslocked() && Tardis:tardisPowered() && Tardis:tardisMoving() && ExteriorDis < 800) 
+        if(Main_Keyboard=="Wibbly Lever" && Tardis:tardisPhyslocked() && Tardis:tardisPowered() && Tardis:tardisMoving() == 0 && ExteriorDis < 800) 
         {
             printColor(TardisChatColor,""+TardisName+": As the Doctor said, The Wibbly Lever!")
             Tardis:tardisFastReturn()
         }
-        
-    #[ Exterior Cloister ]#
-        
-        findByClass("player")
-        findExcludePlayer(Owner)
-        findExcludeEntity(Companion)
-        Player = findResult(1)
-        
-        Dist2 = Player:pos():distance(Tardis:pos())
-        
-        if(Dist2 < 1000)
-        {
-            if(Status[1,number] <= 20)
-            {
-                if(DoOnce2==0)
-                {
-                    timer("cloister",0)
-                    DoOnce2=1
-                }
-            }
-            elseif(Status[1,number] > 20)
-            {
-                soundStop(5)
-                DoOnce2=0
-            }
-        }
-        elseif(Dist2 > 1500)
-        {
-            if(Status[1,number] <= 20)
-            {
-                DoOnce2=0
-                soundStop(5)
-            }
-        }
-        
-        if(clk("cloister"))
-        {
-            Tardis:soundPlay(5,100,"tardis/cloisterbell_loop.wav")
-        }
-        else
-        {
-            soundStop(5)
-        }
-        
     #[ Companion Retrival ]#
         if(isSinglePlayer() == 0)
         {
@@ -857,25 +686,6 @@ artron()
             holoAlpha(3,0)
         }
         
-    #[ Tardis Materialize Stuff ]#
-        
-        holoSkin(4,Tardis:getSkin())
-        holoAng(5,Tardis:angles())
-        
-        if(Tardis:tardisVisible() == 0 && Tardis:tardisMoving() == 0) 
-        {
-            holoAlpha(4,30)
-        }
-        else
-        {
-            holoAlpha(4,255)
-        }
-        
-        if(Tardis:tardisMoving()) 
-        {
-            holoAlpha(4,Tardis:getAlpha())
-        }
-    
     #[ Curiosity Circuts ]#
             
         if(Tardis:tardisInVortex()) 
@@ -906,7 +716,7 @@ artron()
                     {
                         if(KeyUse == 0) 
                         {
-                            printColor(TardisChatColor,""+TardisName+": Component Repair Systems On.")
+                            printColor(TardisChatColor,""+TardisName+": Component Repair/Visual Systems On.")
                             KeyUse = 1
                         }
                     }
@@ -925,7 +735,7 @@ artron()
                         if(KeyUse == 1) 
                         {
                             KeyUse = 0
-                            printColor(TardisChatColor,""+TardisName+": Component Repair Systems Off.")
+                            printColor(TardisChatColor,""+TardisName+": Component Repair/Visual Systems Off.")
                         }
                     }
                 }
@@ -933,7 +743,7 @@ artron()
         
             #[ Component Repairing ]#
             
-            if(KeyUse == 1) 
+            if(KeyUse == 1 && Tardis:tardisPowered() == 0) 
             {
                 if(Component[1,number] <= 100 && Component[1,number] >= 0) 
                 {
@@ -1110,12 +920,26 @@ artron()
         }
 tardisComponents()
     }
+    
+#[ Tardis Spin Switch ]#
+    if(Speed >= 1 && Speed < 2000)
+    {
+        Tardis:tardisSpinmode(1)
+    }
+    if(Speed > 2000)
+    {
+        Tardis:tardisSpinmode(-1)
+    }
 
 #[ Console Status Screen ]#
-    
+    if(clk("Reset"))
+    {
+        timer("Reset",300)
+        Console[2041] = 1
+    }
     if(KeyUse == 0) 
     {
-        Console:writeString(""+TardisName+"'s Interface",5,0,25,67,1)
+        Console:writeString(""+TardisName+"'s Interface",0,0,25,67,1)
         Console:writeString(">Shields are at "+ShieldPower+"%",0,2,25,0,0)
         Console:writeString(">Artron levels are at "+Fuel_Percent+"%",0,3,25,0,0)
         Console:writeString(">Hull integrity at "+Tardis:tardisHealth()+"%",0,4,25,0,0)
@@ -1123,8 +947,8 @@ tardisComponents()
         Console:writeString(">Current keyboard input: "+Main_Keyboard+"",0,6,25,0,0)
         Console:writeString(">Current target co-ords:      "+round(Companion:pos())+"",0,8,24,0,0)
         Console:writeString(">Present temperal co-ords:    "+round(time("year"))+"",0,10,25,0,0)
-        Console:writeString(", "+round(time("day"))+"",4,11,25,0,0)
-        Console:writeString(", "+round(time("month"))+"",7,11,25,0,0)
+        Console:writeString(","+round(time("day"))+"",4,11,25,0,0)
+        Console:writeString(","+round(time("month"))+"",7,11,25,0,0)
     }
     else
     {
@@ -1140,207 +964,47 @@ tardisComponents()
         Console:writeString(">Artron Capacitor "+round(Artron_Capacitor)+"%",0,10,25,0,0)
         Console:writeString(">Forcefield Generator "+round(Forcefield_Generator)+"%",0,11,25,0,0)
     }
-
-#[ Holograms Visablility ]#
     
-    if(Player:pos():distance(Interior:pos()) < 800) 
+#[ Tardis Interior Sounds (REQUIRES REWRITE OF 2010 TARDIS ADDON) ]#
+    if(Tardis:tardisPowered() == 1 && Tardis:tardisSelfrepairing() == 0 && Loop == 1)
     {
-        holoVisible(1,Player,1)
-        holoVisible(2,Player,1)
-        holoVisible(3,Player,1)
-        holoVisible(4,Player,1)
-        holoVisible(5,Player,1)
-        holoVisible(6,Player,1)
-        holoVisible(7,Player,1)
-        holoVisible(8,Player,1)
-        holoVisible(9,Player,1)
-        holoVisible(10,Player,1)
-        holoVisible(11,Player,1)
-        holoVisible(12,Player,1)
-        holoVisible(13,Player,1)
-        holoVisible(14,Player,1)
-        holoVisible(15,Player,1)
-        holoVisible(16,Player,1)
-        holoVisible(17,Player,1)
-        holoVisible(18,Player,1)
-        holoVisible(19,Player,1)
-        holoVisible(20,Player,1)
-        holoVisible(21,Player,1)
-        holoVisible(22,Player,1)
-        holoVisible(23,Player,1)
-        holoVisible(24,Player,1)
-        holoVisible(25,Player,1)
-        holoVisible(26,Player,1)
-        holoVisible(27,Player,1)
-        holoVisible(28,Player,1)
-        holoVisible(29,Player,1)
-        holoVisible(30,Player,1)
+        Interior:soundPlay(2,9999,"doctorwho1200/copper/rewrite/creaks_loop.wav")
+        Interior:soundPlay(3,9999,"doctorwho1200/copper/rewrite/interior_idle_loop.wav")
+        soundStop(4)
+        Loop = 0
+    }
+    if(Tardis:tardisPowered() == 0 || Tardis:tardisSelfrepairing() == 1)
+    {
+        soundStop(2)
+        soundStop(3)
+        Loop = 1
+    }
+    if(Tardis:tardisSelfrepairing() == 1 || Tardis:tardisPowered() == 0)
+    {
+        CreakRan = round(random(1,2000))
+        if(CreakRan == 10)
+        {
+            Interior:fastSound("ambient/creak01.wav",100)
+        }
+        if(CreakRan == 2)
+        {
+            Interior:fastSound("ambient/creak02.wav",100)
+        }
+        if(CreakRan == 15)
+        {
+            Interior:fastSound("ambient/creak03.wav",100)
+        }
+    }
+    if(Tardis:tardisSelfrepairing())
+    {
+        if(RSLoop == 1)
+        {
+            Interior:fastSound("doctorwho1200/copper/rewrite/brownlever.wav",100)
+            RSLoop = 0
+        }
     }
     else
     {
-        holoVisible(1,Player,0)
-        holoVisible(2,Player,0)
-        holoVisible(3,Player,0)
-        holoVisible(4,Player,0)
-        holoVisible(5,Player,0)
-        holoVisible(6,Player,0)
-        holoVisible(7,Player,0)
-        holoVisible(8,Player,0)
-        holoVisible(9,Player,0)
-        holoVisible(10,Player,0)
-        holoVisible(11,Player,0)
-        holoVisible(12,Player,0)
-        holoVisible(13,Player,0)
-        holoVisible(14,Player,0)
-        holoVisible(15,Player,0)
-        holoVisible(16,Player,0)
-        holoVisible(17,Player,0)
-        holoVisible(18,Player,0)
-        holoVisible(19,Player,0)
-        holoVisible(20,Player,0)
-        holoVisible(21,Player,0)
-        holoVisible(22,Player,0)
-        holoVisible(23,Player,0)
-        holoVisible(24,Player,0)
-        holoVisible(25,Player,0)
-        holoVisible(26,Player,0)
-        holoVisible(27,Player,0)
-        holoVisible(28,Player,0)
-        holoVisible(29,Player,0)
-        holoVisible(30,Player,0)
-    }
-    
-    if(Companion:pos():distance(Interior:pos()) < 800) 
-    {
-        holoVisible(1,Companion,1)
-        holoVisible(2,Companion,1)
-        holoVisible(3,Companion,1)
-        holoVisible(4,Companion,1)
-        holoVisible(5,Companion,1)
-        holoVisible(6,Companion,1)
-        holoVisible(7,Companion,1)
-        holoVisible(8,Companion,1)
-        holoVisible(9,Companion,1)
-        holoVisible(10,Companion,1)
-        holoVisible(11,Companion,1)
-        holoVisible(12,Companion,1)
-        holoVisible(13,Companion,1)
-        holoVisible(14,Companion,1)
-        holoVisible(15,Companion,1)
-        holoVisible(16,Companion,1)
-        holoVisible(17,Companion,1)
-        holoVisible(18,Companion,1)
-        holoVisible(19,Companion,1)
-        holoVisible(20,Companion,1)
-        holoVisible(21,Companion,1)
-        holoVisible(22,Companion,1)
-        holoVisible(23,Companion,1)
-        holoVisible(24,Companion,1)
-        holoVisible(25,Companion,1)
-        holoVisible(26,Companion,1)
-        holoVisible(27,Companion,1)
-        holoVisible(28,Companion,1)
-        holoVisible(29,Companion,1)
-        holoVisible(30,Companion,1)
-    }
-    else
-    {
-        holoVisible(1,Companion,0)
-        holoVisible(2,Companion,0)
-        holoVisible(3,Companion,0)
-        holoVisible(4,Companion,0)
-        holoVisible(5,Companion,0)
-        holoVisible(6,Companion,0)
-        holoVisible(7,Companion,0)
-        holoVisible(8,Companion,0)
-        holoVisible(9,Companion,0)
-        holoVisible(10,Companion,0)
-        holoVisible(11,Companion,0)
-        holoVisible(12,Companion,0)
-        holoVisible(13,Companion,0)
-        holoVisible(14,Companion,0)
-        holoVisible(15,Companion,0)
-        holoVisible(16,Companion,0)
-        holoVisible(17,Companion,0)
-        holoVisible(18,Companion,0)
-        holoVisible(19,Companion,0)
-        holoVisible(20,Companion,0)
-        holoVisible(21,Companion,0)
-        holoVisible(22,Companion,0)
-        holoVisible(23,Companion,0)
-        holoVisible(24,Companion,0)
-        holoVisible(25,Companion,0)
-        holoVisible(26,Companion,0)
-        holoVisible(27,Companion,0)
-        holoVisible(28,Companion,0)
-        holoVisible(29,Companion,0)
-        holoVisible(30,Companion,0)
-    }
-    
-    if(Owner:pos():distance(Interior:pos()) < 800) 
-    {
-        holoVisible(1,Owner,1)
-        holoVisible(2,Owner,1)
-        holoVisible(3,Owner,1)
-        holoVisible(4,Owner,1)
-        holoVisible(5,Owner,1)
-        holoVisible(6,Owner,1)
-        holoVisible(7,Owner,1)
-        holoVisible(8,Owner,1)
-        holoVisible(9,Owner,1)
-        holoVisible(10,Owner,1)
-        holoVisible(11,Owner,1)
-        holoVisible(12,Owner,1)
-        holoVisible(13,Owner,1)
-        holoVisible(14,Owner,1)
-        holoVisible(15,Owner,1)
-        holoVisible(16,Owner,1)
-        holoVisible(17,Owner,1)
-        holoVisible(18,Owner,1)
-        holoVisible(19,Owner,1)
-        holoVisible(20,Owner,1)
-        holoVisible(21,Owner,1)
-        holoVisible(22,Owner,1)
-        holoVisible(23,Owner,1)
-        holoVisible(24,Owner,1)
-        holoVisible(25,Owner,1)
-        holoVisible(26,Owner,1)
-        holoVisible(27,Owner,1)
-        holoVisible(28,Owner,1)
-        holoVisible(29,Owner,1)
-        holoVisible(30,Owner,1)
-    }
-    else
-    {
-        holoVisible(1,Owner,0)
-        holoVisible(2,Owner,0)
-        holoVisible(3,Owner,0)
-        holoVisible(4,Owner,0)
-        holoVisible(5,Owner,0)
-        holoVisible(6,Owner,0)
-        holoVisible(7,Owner,0)
-        holoVisible(8,Owner,0)
-        holoVisible(9,Owner,0)
-        holoVisible(10,Owner,0)
-        holoVisible(11,Owner,0)
-        holoVisible(12,Owner,0)
-        holoVisible(13,Owner,0)
-        holoVisible(14,Owner,0)
-        holoVisible(15,Owner,0)
-        holoVisible(16,Owner,0)
-        holoVisible(17,Owner,0)
-        holoVisible(18,Owner,0)
-        holoVisible(19,Owner,0)
-        holoVisible(20,Owner,0)
-        holoVisible(21,Owner,0)
-        holoVisible(22,Owner,0)
-        holoVisible(23,Owner,0)
-        holoVisible(24,Owner,0)
-        holoVisible(25,Owner,0)
-        holoVisible(26,Owner,0)
-        holoVisible(27,Owner,0)
-        holoVisible(28,Owner,0)
-        holoVisible(29,Owner,0)
-        holoVisible(30,Owner,0)
+        RSLoop = 1
     }
 } # End Code Mark

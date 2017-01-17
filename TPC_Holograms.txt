@@ -1,0 +1,355 @@
+@name TPC V6.6+ Holographic Systems
+@model models/bull/gates/processor_mini.mdl
+@inputs Fuel_Percent ShieldPower HologramsActive Status:array Extrapolator_Shielding
+@persist [Tardis Interior Owner Companion Player]:entity
+@trigger all
+
+interval(60)
+Interior = entity():isConstrainedTo()
+Tardis = entity():isConstrainedTo():tardisGet()
+Owner = Tardis:owner()
+Players = array(players(), playersAdmins(), playersSuperAdmins())
+Companions = array(Owner:steamFriends())
+
+#[ Holograms ]#
+    
+if(HologramsActive == 1)
+{
+#[ Tardis Shield ]#
+    holoCreate(1)
+    holoModel(1,"hq_icosphere")
+    holoPos(1,Interior:toWorld(vec(-26,42,21.5)))
+    holoAng(1,ang(0,0,0))
+    holoScale(1,vec(0.9,0.9,0.9))
+        
+#[ Tardis Status Exterior ]#
+    holoCreate(2)
+    holoModel(2,"models/drmatt/tardis/exterior.mdl")
+    holoParent(2,Interior)
+    holoBodygroup(2,1,1)
+    holoPos(2,Interior:toWorld(vec(-26,42,17.5)))
+    holoScale(2,vec(0.071,0.071,0.071))
+
+#[ Tardis Demat Phase ]#
+    holoCreate(4)
+    holoModel(4,"models/drmatt/tardis/exterior.mdl")
+    holoPos(4,Interior:toWorld(vec(-26,42,9)))
+    holoAng(4,ang(0,120,0))
+    holoScale(4,vec(0.07,0.07,0.07))
+    holoBodygroup(4,2,1)
+    holoBodygroup(4,1,1)
+        
+#[ Tardis Status Background ]#
+    holoCreate(5)
+    holoModel(5,"models/drmatt/tardis/exterior.mdl")
+    holoPos(5,Interior:toWorld(vec(-26,42,17.5)))
+    holoMaterial(5,"phoenix_storms/fender_white")
+    holoScale(5,vec(0.07,0.07,0.07))
+}
+#[ Tardis Status Holo ]#
+        
+        if(Status[1,number] > 50 && Tardis:tardisHealth() < 101)
+        {
+            holoColor(2,vec(21,255,14))
+            holoAlpha(2,170)
+        }
+        elseif(Status[1,number] > 20 && Tardis:tardisHealth() < 51)
+        {
+            holoColor(2,vec(255,150,0))
+            holoAlpha(2,170)
+        }
+        elseif(Status[1,number] < 21 && Tardis:tardisHealth() > 0)
+        {
+            holoColor(2,vec(255,0,0))
+            holoAlpha(2,170)
+        }
+        elseif(Status[1,number] == 0)
+        {
+            holoColor(2,vec(random(100,250),random(0,10),random(12,22)))
+            holoAlpha(2,random(10,200))
+        }
+        
+        if(Fuel_Percent > 50 && Fuel_Percent < 101)
+        {
+            holoColor(5,vec(21,255,14))
+        }
+        elseif(Fuel_Percent > 20 && Fuel_Percent < 51)
+        {
+            holoColor(5,vec(255,150,0))
+        }
+        elseif(Fuel_Percent < 21 && Fuel_Percent > 0)
+        {
+            holoColor(5,vec(255,0,0))
+        }
+        elseif(Fuel_Percent == 0)
+        {
+            holoColor(5,vec(random(100,250),random(0,10),random(12,22)))
+        }
+        
+        if(Tardis:tardisMoving() == 1) 
+        {
+            if(Tardis:tardisInVortex() == 0) 
+            {
+                holoAlpha(1,30)
+            }
+        }
+        
+        if(Tardis:tardisInVortex() && Extrapolator_Shielding == 1) 
+        {
+            holoAlpha(1,ShieldPower)
+        }
+        
+        if(Tardis:tardisInVortex() == 0 && Tardis:tardisMoving() == 0) 
+        {
+            holoAlpha(1,0)
+        }
+    #[ Shield Hologram ]#
+        
+        if(Extrapolator_Shielding == 1) 
+        {
+            holoColor(1,vec(65,206,255))
+        }
+        else
+        {
+            holoAlpha(1,0)
+        }
+        
+    #[ Tardis HoloStatus ]#
+        
+        holoAng(2,Tardis:angles())
+        holoSkin(2,Tardis:getSkin())
+        
+        if(Tardis:tardisPowered() == 1) 
+        {
+            holoBodygroup(2,2,1)
+        }
+        if(Tardis:tardisPowered() == 0) 
+        {
+            holoBodygroup(2,2,0)
+        }
+        
+        
+#[ Tardis Materialize Stuff ]#
+        
+        holoSkin(4,Tardis:getSkin())
+        holoAng(5,Tardis:angles())
+        
+        if(Tardis:tardisVisible() == 0 && Tardis:tardisMoving() == 0) 
+        {
+            holoAlpha(4,30)
+        }
+        else
+        {
+            holoAlpha(4,255)
+        }
+        
+        if(Tardis:tardisMoving()) 
+        {
+            holoAlpha(4,Tardis:getAlpha())
+        }
+    
+#[ Holograms Visablility ]#
+
+if(isSinglePlayer() == 0)
+{
+    if(Player:pos():distance(Interior:pos()) < 800) 
+    {
+        holoVisible(1,Player,1)
+        holoVisible(2,Player,1)
+        holoVisible(3,Player,1)
+        holoVisible(4,Player,1)
+        holoVisible(5,Player,1)
+        holoVisible(6,Player,1)
+        holoVisible(7,Player,1)
+        holoVisible(8,Player,1)
+        holoVisible(9,Player,1)
+        holoVisible(10,Player,1)
+        holoVisible(11,Player,1)
+        holoVisible(12,Player,1)
+        holoVisible(13,Player,1)
+        holoVisible(14,Player,1)
+        holoVisible(15,Player,1)
+        holoVisible(16,Player,1)
+        holoVisible(17,Player,1)
+        holoVisible(18,Player,1)
+        holoVisible(19,Player,1)
+        holoVisible(20,Player,1)
+        holoVisible(21,Player,1)
+        holoVisible(22,Player,1)
+        holoVisible(23,Player,1)
+        holoVisible(24,Player,1)
+        holoVisible(25,Player,1)
+        holoVisible(26,Player,1)
+        holoVisible(27,Player,1)
+        holoVisible(28,Player,1)
+        holoVisible(29,Player,1)
+        holoVisible(30,Player,1)
+    }
+    else
+    {
+        holoVisible(1,Player,0)
+        holoVisible(2,Player,0)
+        holoVisible(3,Player,0)
+        holoVisible(4,Player,0)
+        holoVisible(5,Player,0)
+        holoVisible(6,Player,0)
+        holoVisible(7,Player,0)
+        holoVisible(8,Player,0)
+        holoVisible(9,Player,0)
+        holoVisible(10,Player,0)
+        holoVisible(11,Player,0)
+        holoVisible(12,Player,0)
+        holoVisible(13,Player,0)
+        holoVisible(14,Player,0)
+        holoVisible(15,Player,0)
+        holoVisible(16,Player,0)
+        holoVisible(17,Player,0)
+        holoVisible(18,Player,0)
+        holoVisible(19,Player,0)
+        holoVisible(20,Player,0)
+        holoVisible(21,Player,0)
+        holoVisible(22,Player,0)
+        holoVisible(23,Player,0)
+        holoVisible(24,Player,0)
+        holoVisible(25,Player,0)
+        holoVisible(26,Player,0)
+        holoVisible(27,Player,0)
+        holoVisible(28,Player,0)
+        holoVisible(29,Player,0)
+        holoVisible(30,Player,0)
+    }
+    
+    if(Companion:pos():distance(Interior:pos()) < 800) 
+    {
+        holoVisible(1,Companion,1)
+        holoVisible(2,Companion,1)
+        holoVisible(3,Companion,1)
+        holoVisible(4,Companion,1)
+        holoVisible(5,Companion,1)
+        holoVisible(6,Companion,1)
+        holoVisible(7,Companion,1)
+        holoVisible(8,Companion,1)
+        holoVisible(9,Companion,1)
+        holoVisible(10,Companion,1)
+        holoVisible(11,Companion,1)
+        holoVisible(12,Companion,1)
+        holoVisible(13,Companion,1)
+        holoVisible(14,Companion,1)
+        holoVisible(15,Companion,1)
+        holoVisible(16,Companion,1)
+        holoVisible(17,Companion,1)
+        holoVisible(18,Companion,1)
+        holoVisible(19,Companion,1)
+        holoVisible(20,Companion,1)
+        holoVisible(21,Companion,1)
+        holoVisible(22,Companion,1)
+        holoVisible(23,Companion,1)
+        holoVisible(24,Companion,1)
+        holoVisible(25,Companion,1)
+        holoVisible(26,Companion,1)
+        holoVisible(27,Companion,1)
+        holoVisible(28,Companion,1)
+        holoVisible(29,Companion,1)
+        holoVisible(30,Companion,1)
+    }
+    else
+    {
+        holoVisible(1,Companion,0)
+        holoVisible(2,Companion,0)
+        holoVisible(3,Companion,0)
+        holoVisible(4,Companion,0)
+        holoVisible(5,Companion,0)
+        holoVisible(6,Companion,0)
+        holoVisible(7,Companion,0)
+        holoVisible(8,Companion,0)
+        holoVisible(9,Companion,0)
+        holoVisible(10,Companion,0)
+        holoVisible(11,Companion,0)
+        holoVisible(12,Companion,0)
+        holoVisible(13,Companion,0)
+        holoVisible(14,Companion,0)
+        holoVisible(15,Companion,0)
+        holoVisible(16,Companion,0)
+        holoVisible(17,Companion,0)
+        holoVisible(18,Companion,0)
+        holoVisible(19,Companion,0)
+        holoVisible(20,Companion,0)
+        holoVisible(21,Companion,0)
+        holoVisible(22,Companion,0)
+        holoVisible(23,Companion,0)
+        holoVisible(24,Companion,0)
+        holoVisible(25,Companion,0)
+        holoVisible(26,Companion,0)
+        holoVisible(27,Companion,0)
+        holoVisible(28,Companion,0)
+        holoVisible(29,Companion,0)
+        holoVisible(30,Companion,0)
+    }
+    
+    if(Owner:pos():distance(Interior:pos()) < 800) 
+    {
+        holoVisible(1,Owner,1)
+        holoVisible(2,Owner,1)
+        holoVisible(3,Owner,1)
+        holoVisible(4,Owner,1)
+        holoVisible(5,Owner,1)
+        holoVisible(6,Owner,1)
+        holoVisible(7,Owner,1)
+        holoVisible(8,Owner,1)
+        holoVisible(9,Owner,1)
+        holoVisible(10,Owner,1)
+        holoVisible(11,Owner,1)
+        holoVisible(12,Owner,1)
+        holoVisible(13,Owner,1)
+        holoVisible(14,Owner,1)
+        holoVisible(15,Owner,1)
+        holoVisible(16,Owner,1)
+        holoVisible(17,Owner,1)
+        holoVisible(18,Owner,1)
+        holoVisible(19,Owner,1)
+        holoVisible(20,Owner,1)
+        holoVisible(21,Owner,1)
+        holoVisible(22,Owner,1)
+        holoVisible(23,Owner,1)
+        holoVisible(24,Owner,1)
+        holoVisible(25,Owner,1)
+        holoVisible(26,Owner,1)
+        holoVisible(27,Owner,1)
+        holoVisible(28,Owner,1)
+        holoVisible(29,Owner,1)
+        holoVisible(30,Owner,1)
+    }
+    else
+    {
+        holoVisible(1,Owner,0)
+        holoVisible(2,Owner,0)
+        holoVisible(3,Owner,0)
+        holoVisible(4,Owner,0)
+        holoVisible(5,Owner,0)
+        holoVisible(6,Owner,0)
+        holoVisible(7,Owner,0)
+        holoVisible(8,Owner,0)
+        holoVisible(9,Owner,0)
+        holoVisible(10,Owner,0)
+        holoVisible(11,Owner,0)
+        holoVisible(12,Owner,0)
+        holoVisible(13,Owner,0)
+        holoVisible(14,Owner,0)
+        holoVisible(15,Owner,0)
+        holoVisible(16,Owner,0)
+        holoVisible(17,Owner,0)
+        holoVisible(18,Owner,0)
+        holoVisible(19,Owner,0)
+        holoVisible(20,Owner,0)
+        holoVisible(21,Owner,0)
+        holoVisible(22,Owner,0)
+        holoVisible(23,Owner,0)
+        holoVisible(24,Owner,0)
+        holoVisible(25,Owner,0)
+        holoVisible(26,Owner,0)
+        holoVisible(27,Owner,0)
+        holoVisible(28,Owner,0)
+        holoVisible(29,Owner,0)
+        holoVisible(30,Owner,0)
+    }
+}

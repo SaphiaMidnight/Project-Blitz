@@ -2,15 +2,15 @@
 @model models/bull/gates/processor.mdl
 @inputs [Main_Keyboard]:string [FuelBoost]:entity Console:wirelink Targetting 
 @outputs [Tardis_Code TardisName]:string [XYZ TardisChatColor]:vector Fuel_Percent ShieldPower HologramsActive Extrapolator_Shielding Status:array
-@persist [Tardis Owner Interior Companion]:entity [TardisName ChipActive]:string Dist Damage TardisPhase Phase DoOnce Use Speed AutoLock
-@persist Autospin SkinT DoOnce2 Extrapolator_Shielding ShieldPower Fuel Trans FuelAbsorb Disguise KeyUse Asked Booted Loop RSLoop
+@persist [Tardis Owner Interior Companion]:entity [TardisName ChipActive]:string Dist Damage TardisPhase Phase DoOnce Use Speed AutoLock LeakSealedSearch
+@persist Autospin SkinT DoOnce2 DoOnce3 DoOnce4 DoOnce5 Extrapolator_Shielding ShieldPower Fuel Trans FuelAbsorb Disguise KeyUse Asked Booted Loop RSLoop GT:gtable TPCH:table AAA ETIDab ETab:entity
 @persist #[Companents]# Chronometric_Astrometer Red_Thermocouplings Manual_Navigations Isomorphic_Circuitry Fluid_Links Chameleon_Circuit 
 @persist #[Components]# Blue_Thermocouplings Green_Thermocouplings Artron_Capacitor Forcefield_Generator 
 @persist [Version WebVersion MOTD NewCode]:string Update VersionInfo:array
-@trigger all
+@trigger Main_Keyboard FuelBoost
 
 #[ Chip Version ]#
-Version = "v7.6"
+Version = "v7.8"
 
 #[ Tardis Exterior/Interior and Owner Definitions ]#
 Tardis = entity():isConstrainedTo():tardisGet()
@@ -127,22 +127,12 @@ if(ChipActive == "true")
 
 
 
-
-
-
-
-
-
-
-
-
-
 #[ Continue Timers ]#
 
     timer("use", 500)    
 
 #[ Variables ]#
-    
+
     if(Tardis:tardisPilot():isValid())
     {
         TardisName = Tardis:tardisPilot():name()
@@ -190,12 +180,17 @@ if(ChipActive == "true")
         Forcefield_Generator = 100
         
         Fuel = 100
+        LeakSealedSearch = 0
         AutoLocks = 0
         Asked = 0
         SkinT = 1
         Phase = 0
         KeyUse = 0
         DoOnce = 0
+        DoOnce2 = 0
+        DoOnce3 = 0
+        DoOnce4 = 0
+        DoOnce5 = 0
         Loop = 1
         RSLoop = 1
         Tardis_Code = "H5C?W#3E*" #Who knows what this is for? ;)
@@ -327,7 +322,7 @@ if(ChipActive == "true")
             Fuel_Percent = round(Fuel)
             if(Fuel > 0) 
             {
-                if(Main_Keyboard == "Dump Fuel")
+                if(Main_Keyboard == "Dump Fuel" && Fuel > 1)
                 {
                     Fuel = 1
                 }
@@ -369,7 +364,11 @@ if(ChipActive == "true")
             }
             if(Fuel_Percent == 0 && Tardis:tardisInVortex() && Extrapolator_Shielding == 1) 
             {
-                printColor(TardisChatColor,""+TardisName+": Artron fuel banks are empty! Shields have failed!")
+                if(DoOnce5 == 0)
+                {
+                    printColor(TardisChatColor,""+TardisName+": Artron fuel cells are empty! Shields have failed!")
+                    DoOnce5 = 1
+                }
                 Extrapolator_Shielding = 0           
             }
             elseif(Forcefield_Generator <= 1) 
@@ -391,6 +390,39 @@ if(ChipActive == "true")
             {
                 FuelBoost:propDelete()
                 FuelAbsorb = 255
+            }
+            if(Tardis:tardisHealth() <= 10)
+            {
+                LeakSealedSearch = 1
+                if(Fuel > 0)
+                {
+                    Fuel -= 0.03
+                }
+                if(DoOnce3 == 0)
+                {
+                    printColor(TardisChatColor,""+TardisName+": Fuel cells are busted! I'm leaking fuel due to damage!")
+                    DoOnce3 = 1
+                }
+            }
+            if(LeakSealedSearch == 1)
+            {
+                if(Tardis:tardisHealth() > 10)
+                {
+                    LeakSealedSearch = 0
+                    if(DoOnce3 == 1)
+                    {
+                        printColor(TardisChatColor,""+TardisName+": Fuel cells repaired and are no longer leaking fuel... Phew..")
+                        DoOnce3 = 0
+                    }
+                }
+            }
+            if(Fuel_Percent == 0 && Tardis:tardisMoving() == 0)
+            {
+                if(DoOnce4 == 0)
+                {
+                    printColor(TardisChatColor,""+TardisName+": Fuel cells depleted, shutting down.")
+                    DoOnce4 = 1
+                }
             }
         }
 artron()
@@ -579,8 +611,10 @@ artron()
         {
             Tardis:tardisMaterialise()
         }
-        
-        if(ExteriorDis > 800 && Main_Keyboard=="Amy Pond" && Tardis:tardisIsHADS() && Tardis:tardisPhyslocked() && Tardis:tardisPowered()) 
+    
+    #[ Keyboard Inputs ]#
+    
+        if(ExteriorDis > 800 && Main_Keyboard== "Amy Pond" && Tardis:tardisIsHADS() && Tardis:tardisPhyslocked() && Tardis:tardisPowered()) 
         { 
             if(Tardis:tardisMoving() == 0 && Tardis:tardisLongflighted() == 0 && Tardis:tardisIsomorphic() && Tardis:tardisLocked()) 
             {
@@ -589,11 +623,12 @@ artron()
             }
         }
         
-        if(Main_Keyboard=="Wibbly Lever" && Tardis:tardisPhyslocked() && Tardis:tardisPowered() && Tardis:tardisMoving() == 0 && ExteriorDis < 800) 
+        if(Main_Keyboard== "Wibbly Lever" && Tardis:tardisPhyslocked() && Tardis:tardisPowered() && Tardis:tardisMoving() == 0 && ExteriorDis < 800) 
         {
             printColor(TardisChatColor,""+TardisName+": As the Doctor said, The Wibbly Lever!")
             Tardis:tardisFastReturn()
         }
+        
     #[ Companion Retrival ]#
         if(isSinglePlayer() == 0)
         {
@@ -937,34 +972,43 @@ tardisComponents()
         timer("Reset",300)
         Console[2041] = 1
     }
-    if(KeyUse == 0) 
+    if(Fuel_Percent > 0)
     {
-        Console:writeString(""+TardisName+"'s Interface",0,0,25,67,1)
-        Console:writeString(">Shields are at "+ShieldPower+"%",0,2,25,0,0)
-        Console:writeString(">Artron levels are at "+Fuel_Percent+"%",0,3,25,0,0)
-        Console:writeString(">Hull integrity at "+Tardis:tardisHealth()+"%",0,4,25,0,0)
-        Console:writeString(">Owner's Health is "+Owner:health()+"%",0,5,25,0,0)
-        Console:writeString(">Current keyboard input: "+Main_Keyboard+"",0,6,25,0,0)
-        Console:writeString(">Current target co-ords:      "+round(Companion:pos())+"",0,8,24,0,0)
-        Console:writeString(">Present temperal co-ords:    "+round(time("year"))+"",0,10,25,0,0)
-        Console:writeString(","+round(time("day"))+"",4,11,25,0,0)
-        Console:writeString(","+round(time("month"))+"",7,11,25,0,0)
+        if(KeyUse == 0) 
+        {
+            Console:writeString(""+TardisName+"'s Interface",0,0,25,67,1)
+            Console:writeString(">Shields are at "+ShieldPower+"%",0,2,25,0,0)
+            Console:writeString(">Artron levels are at "+Fuel_Percent+"%",0,3,25,0,0)
+            Console:writeString(">Hull integrity at "+Tardis:tardisHealth()+"%",0,4,25,0,0)
+            Console:writeString(">Owner's Health is "+Owner:health()+"%",0,5,25,0,0)
+            Console:writeString(">Current keyboard input: "+Main_Keyboard+"",0,6,25,0,0)
+            Console:writeString(">Current target co-ords:      "+round(Companion:pos())+"",0,8,24,0,0)
+            Console:writeString(">Present temperal co-ords:    "+round(time("year"))+"",0,10,25,0,0)
+            Console:writeString(","+round(time("day"))+"",4,11,25,0,0)
+            Console:writeString(","+round(time("month"))+"",7,11,25,0,0)
+        }
+        else
+        {
+            Console:writeString("Component Status Interface",2,0,25,67,1)
+            Console:writeString(">Fluid Links "+round(Fluid_Links)+"%",0,2,25,0,0)
+            Console:writeString(">Manual Nav. "+round(Manual_Navigations)+"%",0,3,25,0,0)
+            Console:writeString(">Red Thermo. "+round(Red_Thermocouplings)+"%",0,4,25,0,0)
+            Console:writeString(">Blue Thermo. "+round(Blue_Thermocouplings)+"%",0,5,25,0,0)
+            Console:writeString(">Green Thermo. "+round(Green_Thermocouplings)+"%",0,6,25,0,0)
+            Console:writeString(">Chrono. Astro. "+round(Chronometric_Astrometer)+"%",0,7,25,0,0)
+            Console:writeString(">Isomorphic Circuitry "+round(Isomorphic_Circuitry)+"%",0,8,25,0,0)
+            Console:writeString(">Chameleon Circuit "+round(Chameleon_Circuit)+"%",0,9,25,0,0)
+            Console:writeString(">Artron Capacitor "+round(Artron_Capacitor)+"%",0,10,25,0,0)
+            Console:writeString(">Forcefield Generator "+round(Forcefield_Generator)+"%",0,11,25,0,0)
+        }
     }
     else
     {
-        Console:writeString("Component Status Interface",2,0,25,67,1)
-        Console:writeString(">Fluid Links "+round(Fluid_Links)+"%",0,2,25,0,0)
-        Console:writeString(">Manual Nav. "+round(Manual_Navigations)+"%",0,3,25,0,0)
-        Console:writeString(">Red Thermo. "+round(Red_Thermocouplings)+"%",0,4,25,0,0)
-        Console:writeString(">Blue Thermo. "+round(Blue_Thermocouplings)+"%",0,5,25,0,0)
-        Console:writeString(">Green Thermo. "+round(Green_Thermocouplings)+"%",0,6,25,0,0)
-        Console:writeString(">Chrono. Astro. "+round(Chronometric_Astrometer)+"%",0,7,25,0,0)
-        Console:writeString(">Isomorphic Circuitry "+round(Isomorphic_Circuitry)+"%",0,8,25,0,0)
-        Console:writeString(">Chameleon Circuit "+round(Chameleon_Circuit)+"%",0,9,25,0,0)
-        Console:writeString(">Artron Capacitor "+round(Artron_Capacitor)+"%",0,10,25,0,0)
-        Console:writeString(">Forcefield Generator "+round(Forcefield_Generator)+"%",0,11,25,0,0)
+        Console:writeString(">----------------------------<",0,7,vec(100,0,0),vec(200,0,0),1)
+        Console:writeString(">--------- TARDIS -----------<",0,8,vec(100,0,0),vec(200,0,0),1)
+        Console:writeString(">------ FUEL DEPLETED -------<",0,9,vec(100,0,0),vec(200,0,0),1)
+        Console:writeString(">----------------------------<",0,10,vec(100,0,0),vec(200,0,0),1)
     }
-    
 #[ Tardis Interior Sounds (REQUIRES REWRITE OF 2010 TARDIS ADDON) ]#
     if(Tardis:tardisPowered() == 1 && Tardis:tardisSelfrepairing() == 0 && Loop == 1)
     {
@@ -1007,4 +1051,5 @@ tardisComponents()
     {
         RSLoop = 1
     }
+
 } # End Code Mark

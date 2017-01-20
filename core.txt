@@ -2,15 +2,16 @@
 @model models/bull/gates/processor.mdl
 @inputs [Main_Keyboard]:string [FuelBoost]:entity Console:wirelink Targetting 
 @outputs [Tardis_Code TardisName]:string [XYZ TardisChatColor]:vector Fuel_Percent ShieldPower HologramsActive Extrapolator_Shielding Status:array
-@persist [Tardis Owner Interior Companion]:entity [TardisName ChipActive]:string Dist Damage TardisPhase Phase DoOnce Use Speed AutoLock LeakSealedSearch
-@persist Autospin SkinT DoOnce2 DoOnce3 DoOnce4 DoOnce5 Extrapolator_Shielding ShieldPower Fuel Trans FuelAbsorb Disguise KeyUse Asked Booted Loop RSLoop GT:gtable TPCH:table AAA ETIDab ETab:entity
+@persist [Tardis Owner Interior Companion]:entity [TardisName ChipActive]:string Dist Damage TardisPhase Phase Use Speed AutoLock LeakSealedSearch
+@persist KeyUse Asked Booted Loop RSLoop GT:gtable TPCH:table AAA ETIDab ETab:entity Extrapolator_Shielding ShieldPower Fuel FuelAbsorb EscapeVec:vector
+@persist Autospin SkinT Program1 EpDo PuDo DoOnce DoOnce2 DoOnce3 DoOnce4 DoOnce5 DoOnce6 DoOnce7
 @persist #[Companents]# Chronometric_Astrometer Red_Thermocouplings Manual_Navigations Isomorphic_Circuitry Fluid_Links Chameleon_Circuit 
 @persist #[Components]# Blue_Thermocouplings Green_Thermocouplings Artron_Capacitor Forcefield_Generator 
 @persist [Version WebVersion MOTD NewCode]:string Update VersionInfo:array
 @trigger Main_Keyboard FuelBoost
 
 #[ Chip Version ]#
-Version = "v7.8"
+Version = "v8"
 
 #[ Tardis Exterior/Interior and Owner Definitions ]#
 Tardis = entity():isConstrainedTo():tardisGet()
@@ -167,6 +168,8 @@ if(ChipActive == "true")
     if(first()) 
     {   
         TardisChatColor = vec(0,208,255)
+        EscapeVec = round(Tardis:pos())
+        EscapeAng = round(Tardis:angles())
         
         Fluid_Links = 100
         Manual_Navigations = 100
@@ -191,13 +194,28 @@ if(ChipActive == "true")
         DoOnce3 = 0
         DoOnce4 = 0
         DoOnce5 = 0
+        DoOnce6 = 0
+        DoOnce7 = 0
+        EpDo = 0
+        PuDo = 0
+        Program1 = 0
         Loop = 1
         RSLoop = 1
         Tardis_Code = "H5C?W#3E*" #Who knows what this is for? ;)
         ShieldPower = 255
         HologramsActive = 0
         Tardis:setBodygroup(1,1)
-																																																	                                                                                                                       hint("Chip made by :Saphia Midnight",20)
+								
+    #[ Ep1 Hologram ]#																			
+        holoCreate(1)
+        holoModel(1,owner():model())
+        #holoModel(1,"models/alyx.mdl")
+        #holoAnim(1,3)
+        holoPos(1,Interior:pos())
+        holoAng(1,ang(0,52,0))
+        holoAlpha(1,0)
+        Holo = holoEntity(1)
+                        																						                                                                                                                       hint("Chip made by :Saphia Midnight",20)
         timer("Reset",1000)
         timer("Tardis Reboot", 1500)
         setName(""+Owner:name()+"'s Tardis Personallity: "+TardisName+"")
@@ -209,7 +227,7 @@ if(ChipActive == "true")
     {
         printColor(TardisChatColor,""+TardisName+": Rebooting Tardis main systems..")
         Tardis:tardisPower()
-        Interior:fastSound("doctorwho1200/copper/rewrite/powerdown.wav", 100)
+        Interior:soundPlay(1,0,"doctorwho1200/copper/rewrite/powerdown.wav")
         timer("Boot", 4000)
     }
     if(clk("Boot"))
@@ -283,7 +301,7 @@ if(ChipActive == "true")
         
         if(clk("Insert key"))
         {
-            Tardis:fastSound("weapons/ar2/npc_ar2_reload.wav")
+            Tardis:soundPlay(2,0,"weapons/ar2/npc_ar2_reload.wav")
             
             if(Tardis:tardisLocked())
             {
@@ -310,8 +328,8 @@ if(ChipActive == "true")
             else
             {
                 printColor(TardisChatColor,""+TardisName+": Door lock nonfunctional without power.")
-                Tardis:fastSound("doctorwho1200/copper/rewrite/error.wav",100)
-                Interior:fastSound("doctorwho1200/copper/rewrite/error.wav",100)
+                Tardis:soundPlay(3,0,"doctorwho1200/copper/rewrite/error.wav",100)
+                Interior:soundPlay(3,0,"doctorwho1200/copper/rewrite/error.wav",100)
             }
         }
             
@@ -331,27 +349,27 @@ if(ChipActive == "true")
                     Fuel -= 0.0001
                     Artron_Capacitor -= 0.0001
                 }
-                if(Tardis:tardisInVortex() && Tardis:tardisMoving()) 
+                elseif(Tardis:tardisInVortex() && Tardis:tardisMoving()) 
                 {
                     Fuel -= 0.0025
                     Artron_Capacitor -= 0.0055
                 }
-                if(Tardis:tardisMoving() && Tardis:tardisLongflighted()==0) 
+                elseif(Tardis:tardisMoving() && Tardis:tardisLongflighted()==0) 
                 {
                     Fuel -= 0.0015
                     Artron_Capacitor -= 0.004
                 }
-                if(Tardis:tardisVisible()==0 && Tardis:tardisPowered()) 
+                elseif(Tardis:tardisVisible()==0 && Tardis:tardisPowered()) 
                 {
                     Fuel -= 0.0040
                     Artron_Capacitor -= 0.006
                 }
-                if(Tardis:tardisFlying() && Tardis:tardisPowered()) 
+                elseif(Tardis:tardisFlying() && Tardis:tardisPowered()) 
                 {
                     Fuel -= 0.0010
                     Artron_Capacitor -= 0.002
                 }
-                if(Tardis:tardisPowered() == 0 && Fuel < 100 && Tardis:tardisIsHADS() && Artron_Capacitor > 0) 
+                elseif(Tardis:tardisPowered() == 0 && Fuel < 100 && Tardis:tardisIsHADS() && Artron_Capacitor > 0) 
                 {
                     Fuel += 0.020
                     Artron_Capacitor -= 0.003
@@ -444,19 +462,19 @@ artron()
             {
                 if(Extrapolator_Shielding == 1) 
                 {
-                    Interior:fastSound("stargate/iris/hit.mp3",100)
+                    Interior:soundPlay(4,0,"stargate/iris/hit.mp3")
                     Forcefield_Generator -= 0.001
                     ShieldPower-=1
                 }
             }
         }
-        if(T == 25) 
+        elseif(T == 25) 
         { 
             if(Tardis:tardisInVortex() == 1) 
             {
                 if(Extrapolator_Shielding == 0) 
                 {
-                    Interior:fastSound("doctorwho1200/copper/rewrite/explosion.wav",100)
+                    Interior:soundPlay(5,0,"doctorwho1200/copper/rewrite/explosion.wav")
                     Debris = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,150),ang(0,0,0),1)
                     Debris:setAlpha(0)
                     Debris:propBreak()
@@ -464,25 +482,25 @@ artron()
                 }
             }
         }
-        if(T == 26) 
+        elseif(T == 26) 
         {
             if(Tardis:tardisInVortex() == 1) 
             {
                 if(Extrapolator_Shielding == 1) 
                 {
-                    Interior:fastSound("stargate/iris/hit_2.mp3",100)
+                    Interior:soundPlay(4,0,"stargate/iris/hit_2.mp3")
                     Forcefield_Generator -= 0.003
                     ShieldPower-=2
                 }
             }
         }
-        if(T == 27) 
+        elseif(T == 27) 
         { 
             if(Tardis:tardisInVortex() == 1) 
             {
                 if(Extrapolator_Shielding == 0) 
                 {
-                    Interior:fastSound("doctorwho1200/copper/rewrite/explosion.wav",100)
+                    Interior:soundPlay(5,0,"doctorwho1200/copper/rewrite/explosion.wav")
                     Debris = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,150),ang(0,0,0),1)
                     Debris:setAlpha(0)
                     Debris:propBreak()
@@ -490,25 +508,25 @@ artron()
                 }
             }
         }
-        if(T == 28) 
+        elseif(T == 28) 
         {
             if(Tardis:tardisInVortex() == 1) 
             {
                 if(Extrapolator_Shielding == 1) 
                 {
-                    Interior:fastSound("stargate/iris/hit_3.mp3",100)
+                    Interior:soundPlay(4,0,"stargate/iris/hit_3.mp3")
                     Forcefield_Generator -= 0.004
                     ShieldPower-=2
                 }
             }
         }
-        if(T == 29) 
+        elseif(T == 29) 
         { 
             if(Tardis:tardisInVortex() == 1) 
             {
                 if(Extrapolator_Shielding == 0) 
                 {
-                    Interior:fastSound("doctorwho1200/copper/rewrite/explosion.wav",100)
+                    Interior:soundPlay(5,0,"doctorwho1200/copper/rewrite/explosion.wav")
                     Debris = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,150),ang(0,0,0),1)
                     Debris:setAlpha(0)
                     Debris:propBreak()
@@ -516,25 +534,25 @@ artron()
                 }
             }
         }
-        if(T == 30) 
+        elseif(T == 30) 
         {
             if(Tardis:tardisInVortex() == 1) 
             {
                 if(Extrapolator_Shielding == 1) 
                 {
-                    Interior:fastSound("stargate/iris/hit_4.mp3",100)
+                    Interior:soundPlay(4,0,"stargate/iris/hit_4.mp3")
                     Forcefield_Generator -= 0.006
                     ShieldPower-=4
                 }
             }
         }
-        if(T == 31) 
+        elseif(T == 31) 
         { 
             if(Tardis:tardisInVortex() == 1) 
             {
                 if(Extrapolator_Shielding == 0) 
                 {
-                    Interior:fastSound("doctorwho1200/copper/rewrite/explosion.wav",100)
+                    Interior:soundPlay(5,0,"doctorwho1200/copper/rewrite/explosion.wav")
                     Debris = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,150),ang(0,0,0),1)
                     Debris2 = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,100),ang(0,0,0),1)
                     Debris3 = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,50),ang(0,0,0),1)
@@ -577,21 +595,21 @@ artron()
         {
             if(Status[1,number] < 1)
             {
-                Interior:fastSound("ambient/explosions/exp1.wav",100)
+                Interior:soundPlay(6,0,"ambient/explosions/exp1.wav")
             }
         }
-        if(T == 201 || T == 300)
+        elseif(T == 201 || T == 300)
         {
             if(Status[1,number] < 1)
             {
-                Interior:fastSound("ambient/explosions/exp2.wav",100)
+                Interior:soundPlay(6,0,"ambient/explosions/exp2.wav")
             }
         }
-        if(T == 202 || T == 500)
+        elseif(T == 202 || T == 500)
         {
             if(Status[1,number] < 1)
             {
-                Interior:fastSound("ambient/explosions/exp3.wav",100)
+                Interior:soundPlay(6,0,"ambient/explosions/exp3.wav")
             }
         }
         
@@ -986,6 +1004,7 @@ tardisComponents()
             Console:writeString(">Present temperal co-ords:    "+round(time("year"))+"",0,10,25,0,0)
             Console:writeString(","+round(time("day"))+"",4,11,25,0,0)
             Console:writeString(","+round(time("month"))+"",7,11,25,0,0)
+            Console:writeString("Escape Cords:"+EscapeVec,0,12,25,0,0)
         }
         else
         {
@@ -1012,15 +1031,15 @@ tardisComponents()
 #[ Tardis Interior Sounds (REQUIRES REWRITE OF 2010 TARDIS ADDON) ]#
     if(Tardis:tardisPowered() == 1 && Tardis:tardisSelfrepairing() == 0 && Loop == 1)
     {
-        Interior:soundPlay(2,9999,"doctorwho1200/copper/rewrite/creaks_loop.wav")
-        Interior:soundPlay(3,9999,"doctorwho1200/copper/rewrite/interior_idle_loop.wav")
-        soundStop(4)
+        Interior:soundPlay(7,0,"doctorwho1200/copper/rewrite/creaks_loop.wav")
+        Interior:soundPlay(8,0,"doctorwho1200/copper/rewrite/interior_idle_loop.wav")
+        soundStop(9)
         Loop = 0
     }
     if(Tardis:tardisPowered() == 0 || Tardis:tardisSelfrepairing() == 1)
     {
-        soundStop(2)
-        soundStop(3)
+        soundStop(7)
+        soundStop(8)
         Loop = 1
     }
     if(Tardis:tardisSelfrepairing() == 1 || Tardis:tardisPowered() == 0)
@@ -1028,22 +1047,22 @@ tardisComponents()
         CreakRan = round(random(1,2000))
         if(CreakRan == 10)
         {
-            Interior:fastSound("ambient/creak01.wav",100)
+            Interior:soundPlay(9,0,"ambient/creak01.wav")
         }
         if(CreakRan == 2)
         {
-            Interior:fastSound("ambient/creak02.wav",100)
+            Interior:soundPlay(9,0,"ambient/creak02.wav")
         }
         if(CreakRan == 15)
         {
-            Interior:fastSound("ambient/creak03.wav",100)
+            Interior:soundPlay(9,0,"ambient/creak03.wav")
         }
     }
     if(Tardis:tardisSelfrepairing())
     {
         if(RSLoop == 1)
         {
-            Interior:fastSound("doctorwho1200/copper/rewrite/brownlever.wav",100)
+            Interior:soundPlay(10,0,"doctorwho1200/copper/rewrite/brownlever.wav")
             RSLoop = 0
         }
     }
@@ -1052,4 +1071,156 @@ tardisComponents()
         RSLoop = 1
     }
 
+#[ Ep1 Program - Cookiemorph's code, edited for this chip ]#
+    
+    runOnChat(1)
+    Cmd = owner():lastSaid():explode(" ")
+    if(Cmd[1,string] == "!ep1")
+    {
+        hideChat(1)
+        if(DoOnce6 == 0)
+        {
+            EpDo = 1
+            DoOnce6 = 1
+        }
+        else
+        {
+            EpDo = 0
+        }
+    }
+    else
+    {
+        DoOnce6 = 0
+    }
+    if(EpDo == 1)
+    {
+        if(Tardis:tardisPowered() == 1)
+        {
+            if(Program1 == 0)
+            {
+                Program1 = 1
+            }
+            else
+            {
+                Program1 = 0
+            }
+            if(Tardis:tardisLongflighted() == 0)
+            {
+                Tardis:tardisLongflight()
+            }
+            else{}
+            if(Tardis:tardisIsomorphic() == 0)
+            {
+                Tardis:tardisIsomorph()
+            }
+            else{}
+            if(Tardis:tardisLocked() == 0)
+            {
+                Tardis:tardisLock()
+            }
+            else{}
+            Tardis:tardisDemat(EscapeVec,EscapeAng)
+            timer("teleportwait",5000)
+        }
+    }
+    if(clk("teleportwait"))
+    {
+    if(Tardis:tardisMoving() == 1)
+    {
+        holoPos(1,Interior:pos()-vec(-60,-80,47))
+        holoAng(1,ang(0,52,0))
+        timer("Holoappear",19000)
+    }
+    }
+    if(clk("Holoappear"))
+    {
+        if(Program1 == 1)
+        {
+            holoAlpha(1,255)
+            Holo:soundPlay(11,50,"buttons/button1.wav")
+            timer("message1",1000)
+        }
+        else
+        {
+            holoAlpha(1,0)
+        }
+    }
+    if(clk("message1"))
+    {
+        Holo:soundPlay(12,1,"hl1/fvox/warning.wav")
+        soundVolume(1,1000)
+        timer("message2",1200)
+    }   
+    if(clk("message2"))
+    {
+        Holo:soundPlay(13,5,"hl1/fvox/near_death.wav")
+        soundVolume(2,100)
+        timer("Holodisappear",5000)
+    }
+    if(clk("Holodisappear"))
+    {
+        Holo:soundPlay(14,50,"buttons/button18.wav")
+        holoAlpha(1,0)
+        holoPos(1,Interior:pos())
+        if(Tardis:tardisMoving() == 1)
+        {
+            Tardis:tardisMaterialise()
+        }
+        timer("landed",20000)
+    }
+    if(clk("landed"))
+    {
+        soundStop(11)
+        soundStop(12)
+        soundStop(13)
+        soundStop(14)
+        if(Tardis:tardisLongflighted() == 1)
+        {
+            Tardis:tardisLongflight()
+        }else{}
+        if(Tardis:tardisPowered() == 1)
+        {
+            Tardis:tardisPower()
+        }
+        else{}
+        Program1 = 0
+    }
+
+    if(Cmd[1,string] == "!pickup")
+    {
+        hideChat(1)
+        if(DoOnce7 == 0)
+        {
+            PuDo = 1
+            DoOnce7 = 1
+        }
+        else
+        {
+            PuDo = 0
+        }
+    }
+    else
+    {
+        DoOnce7 = 0
+    }
+    if(PuDo == 1)
+    {
+        if(Tardis:tardisPowered() == 1)
+        {
+            if(Program1 == 0)
+            {
+                Program1 = 1
+            }
+            else
+            {
+                Program1 = 0
+            }
+            if(Tardis:tardisLongflighted() == 1)
+            {
+                Tardis:tardisLongflight()
+            }
+            else{}
+            Tardis:tardisDemat(Owner:pos(),Owner:angles())
+        }
+    }
 } # End Code Mark

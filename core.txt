@@ -1,17 +1,22 @@
 @name Tardis Personality Core
-@model models/bull/gates/processor.mdl
-@inputs [Main_Keyboard]:string [FuelBoost]:entity Console:wirelink Targetting 
-@outputs [Tardis_Code TardisName]:string [XYZ TardisChatColor]:vector Fuel_Percent ShieldPower HologramsActive Extrapolator_Shielding Status:array
-@persist [Tardis Owner Interior Companion]:entity [TardisName ChipActive]:string Dist Damage TardisPhase Phase Use Speed AutoLock LeakSealedSearch
-@persist KeyUse Asked Booted Loop RSLoop GT:gtable TPCH:table AAA ETIDab ETab:entity Extrapolator_Shielding ShieldPower Fuel FuelAbsorb EscapeVec:vector
-@persist Autospin SkinT Program1 EpDo PuDo DoOnce DoOnce2 DoOnce3 DoOnce4 DoOnce5 DoOnce6 DoOnce7
+#@model models/bull/gates/processor.mdl
+@model models/cheeze/wires/router.mdl
+@inputs Console:wirelink Main_Keyboard:string FuelBoost:entity 
+@outputs XYZ:vector Status:array 
+@persist [Tardis Owner Interior Companion]:entity [TardisName PrimeChipActive HolographicChipActive]:string Dist Damage TardisPhase Phase Use Speed AutoLock LeakSealedSearch TardisPower 
+@persist KeyUse Asked Booted Loop RSLoop Extrapolator_Shielding ShieldPower Fuel FuelAbsorb [EscapeVec TardisChatColor]:vector PersonalityActive
+@persist Autospin SkinT Program1 EpDo PuDo DoOnce DoOnce2 DoOnce3 DoOnce4 DoOnce5 DoOnce6 DoOnce7 TardisHealth Fuel_Percent HologramsActive
 @persist #[Companents]# Chronometric_Astrometer Red_Thermocouplings Manual_Navigations Isomorphic_Circuitry Fluid_Links Chameleon_Circuit 
 @persist #[Components]# Blue_Thermocouplings Green_Thermocouplings Artron_Capacitor Forcefield_Generator 
-@persist [Version WebVersion MOTD NewCode]:string Update VersionInfo:array
+@persist [Version WebVersion MOTD NewCode]:string Update VersionInfo:array Float Paradox Preserving Engaged
 @trigger Main_Keyboard FuelBoost
 
+##########################################################################################################################
+#### CHIP DOES REQUIRE TARDIS REWRITE AND THE COPPER [2010/MATT SMITH] THEMED TARDIS ADDON EXTENTION TO IT FOR SOUNDS ####
+##########################################################################################################################
+
 #[ Chip Version ]#
-Version = "v8"
+Version = "v9"
 
 #[ Tardis Exterior/Interior and Owner Definitions ]#
 Tardis = entity():isConstrainedTo():tardisGet()
@@ -24,10 +29,12 @@ OwnerExteriorDis = Owner:pos():distance(Tardis:pos())
 ExteriorDis = Tardis:pos():distance(Interior:pos())
 InteriorP = Interior:pos()
 
-#[ Toggles Chip ]#
+#[ Toggles Chips ]#
 if(Tardis:isValid() & Interior:isValid())
 {
-    ChipActive = "true"
+    PrimeChipActive = "true"
+    PersonalityChipActive = "true"
+    HolographicChipActive = "true"
 }
 else
 {
@@ -43,7 +50,7 @@ if(clk("Check Updates"))
     }
 }
 
-if(ChipActive == "true") 
+if(PrimeChipActive == "true") 
 {
     interval(60)
     runOnHTTP(1)
@@ -130,7 +137,7 @@ if(ChipActive == "true")
 
 #[ Continue Timers ]#
 
-    timer("use", 500)    
+    timer("use", 100)    
 
 #[ Variables ]#
 
@@ -140,7 +147,7 @@ if(ChipActive == "true")
     }
     else
     {
-        TardisName = "Blitz"
+        TardisName = "Crimson"
     }
     
     Speed = Tardis:vel():length()
@@ -162,14 +169,15 @@ if(ChipActive == "true")
     Component = array(Fluid_Links, Manual_Navigations, Red_Thermocouplings, Blue_Thermocouplings, Green_Thermocouplings, Chronometric_Astrometer, Isomorphic_Circuitry, Chameleon_Circuit, Artron_Capacitor, Forcefield_Generator)
     Players = array(players(), playersAdmins(), playersSuperAdmins())
     Companions = array(Owner:steamFriends())
-    Status = array(Tardis:tardisHealth(),Owner:health(),numPlayers(),hostname())
+    Status = array(TardisHealth, Owner:health(), numPlayers(), hostname(), Fuel_Percent, ShieldPower, HologramsActive, Extrapolator_Shielding, TardisName, TardisChatColor, Preserving, Engaged)
     
 #[ Start of the code ]#
     if(first()) 
     {   
-        TardisChatColor = vec(0,208,255)
+        TardisChatColor = vec(255,0,0)
         EscapeVec = round(Tardis:pos())
         EscapeAng = round(Tardis:angles())
+        TardisHealth = Tardis:tardisHealth()
         
         Fluid_Links = 100
         Manual_Navigations = 100
@@ -183,8 +191,13 @@ if(ChipActive == "true")
         Forcefield_Generator = 100
         
         Fuel = 100
+        FuelAbsorb = 255
         LeakSealedSearch = 0
         AutoLocks = 0
+        TardisPower = 1
+        Engaged = 0 #[ Tardis Personallity Extension Chip Control ]#
+        PersonalityActive = 0 #[ Tardis Personallity Extension Chip Control ]#
+        Float = 0
         Asked = 0
         SkinT = 1
         Phase = 0
@@ -199,48 +212,88 @@ if(ChipActive == "true")
         EpDo = 0
         PuDo = 0
         Program1 = 0
+        Paradox = 0
         Loop = 1
         RSLoop = 1
         Tardis_Code = "H5C?W#3E*" #Who knows what this is for? ;)
         ShieldPower = 255
+        
         HologramsActive = 0
         Tardis:setBodygroup(1,1)
-								
-    #[ Ep1 Hologram ]#																			
-        holoCreate(1)
-        holoModel(1,owner():model())
-        #holoModel(1,"models/alyx.mdl")
-        #holoAnim(1,3)
-        holoPos(1,Interior:pos())
-        holoAng(1,ang(0,52,0))
-        holoAlpha(1,0)
-        Holo = holoEntity(1)
-                        																						                                                                                                                       hint("Chip made by :Saphia Midnight",20)
         timer("Reset",1000)
         timer("Tardis Reboot", 1500)
-        setName(""+Owner:name()+"'s Tardis Personallity: "+TardisName+"")
+        setName(""+Owner:name()+"'s Tardis Personallity: "+TardisName+""), hint("Chip made by: Saphia Midnight",20)
+        
+    #[ Wishing Happy Birthday ]#
+        if(round(time("month")) == 9 & round(time("day")) == 17) #Change to your liking or just remove, your call.
+        {
+            Interior:soundPlay(100,0,"taunts/makeawish.mp3")
+            Owner:soundPlay(100,0,"taunts/makeawish.mp3")
+            printColor(TardisChatColor,TardisName+": Happy Birthday!!")
+        }
+
+    #[ Refueling Effect ]#
+        holoCreate(1)
+        holoModel(1,"models/effects/portalfunnel.mdl")
+        holoPos(1,Tardis:pos()+vec(0,0,100))
+        holoAng(1,Tardis:toWorld(ang(0,0,0)))
+        holoAlpha(1,0)
+        holoParent(1,Tardis)
+    
+    #[ Open Rift ]#
+        holoCreate(2)
+        holoModel(2,"models/props_combine/Combine_citadelcloud003.mdl")
+        holoPos(2,Tardis:pos()+vec(0,0,2200))
+        holoAng(2,Tardis:toWorld(ang(0,0,0)))
+        holoAlpha(2,0)
+        holoParent(2,Tardis)
+    
+        holoCreate(5)
+        holoModel(5,"models/props_combine/Combine_citadelcloudcenter.mdl")
+        holoPos(5,Tardis:pos()+vec(0,0,2200))
+        holoAng(5,Tardis:toWorld(ang(0,0,0)))
+        holoAlpha(5,0)
+        holoParent(5,Tardis)
+    
+    #[ Beam ]#
+        holoCreate(4)
+        holoModel(4,"models/props_combine/combine_citadelbeacon.mdl")
+        holoPos(4,Tardis:pos()+vec(0,0,1760))
+        holoAng(4,Tardis:toWorld(ang(0,0,180)))
+        holoScale(4,vec(1,1,0.62))
+        holoAlpha(4,0)
+        holoParent(4,Tardis)
+
     }
 
 #[ Starting Timers ]#
-
+    
     if(clk("Tardis Reboot")) 
     {
-        printColor(TardisChatColor,""+TardisName+": Rebooting Tardis main systems..")
+        printColor(TardisChatColor,""+TardisName+": Shutting down for rebooting Tardis systems.. This may take time..")
         Tardis:tardisPower()
+        TardisPower = 0
         Interior:soundPlay(1,0,"doctorwho1200/copper/rewrite/powerdown.wav")
-        timer("Boot", 4000)
+        timer("Boot", 20000)
+        hint("You may now wire the extensions to the primary chip while things are getting started",10)
+    }
+    if(TardisPower != 1 && Tardis:tardisPowered() == 1)
+    {
+        hint("Power systems offline until restart is complete.",5)
+        Tardis:tardisPower()
     }
     if(clk("Boot"))
     {
-        printColor(TardisChatColor,""+TardisName+": Tardis main systems rebooted.")
-        Tardis:tardisPower()
-        printColor(TardisChatColor,""+TardisName+": Booting secondary systems..")
-        timer("Secondary", 4000)
+        printColor(TardisChatColor,""+TardisName+": Primary systems booted. Just a biiit longer, booting secondary systems...")
+        Interior:soundPlay(104,0,"doctorwho1200/copper/rewrite/accelerator.wav")
+        timer("Secondary", 8000)
     }
     if(clk("Secondary"))
     {
         Booted = 1
-        printColor(TardisChatColor,""+TardisName+": Tardis secondary systems booted. Scanning for server name..")
+        TardisPower = 1
+        printColor(TardisChatColor,""+TardisName+": Tardis secondary systems booted. You may now restart the console. Scanning for server name...")
+        Interior:soundPlay(105,0,"doctorwho1200/copper/rewrite/bell.wav")
         timer("Holograms", 2000)
         timer("Singleplayer?", 4000)
         timer("Auto Door Locks?", 8000)
@@ -249,7 +302,7 @@ if(ChipActive == "true")
     {
         if(isSinglePlayer()) 
         {
-            printColor(TardisChatColor,""+TardisName+": So, just me and you then?")
+            printColor(TardisChatColor,""+TardisName+": Ah, just me and you. Just how I like it.")
         }
         else
         {
@@ -260,17 +313,21 @@ if(ChipActive == "true")
     
 #[ Hologramphic Program Engage (SEPERATE CHIP) ]#
     
-    if(clk("Holograms")) 
+    if(clk("Holograms") && HolographicChipActive == "true") 
     {
-        HologramsActive = 1
         printColor(TardisChatColor,""+TardisName+": Holographic Systems Online.")
+        HologramsActive = 1
+    }
+    elseif(HolographicChipActive != "true")
+    {
+        printColor(TardisChatColor,""+TardisName+": Holographic Systems unable to boot. Extension setting not 'true'.")
     }
 
     if(Booted == 1)
     {
     #[ Tardis Auto lock & Tardis Auto Isomorphics ]#
         
-        if(Tardis:tardisMoving() || Tardis:tardisFlying()) 
+        if(Tardis:tardisMoving()) 
         {
             if(Tardis:tardisLocked() == 0)
             {
@@ -294,8 +351,27 @@ if(ChipActive == "true")
             {
                 if(owner():aimEntity() == Tardis && Owner:pos():distance(Tardis:pos()) < 68 && Owner != Tardis:tardisPilot())
                 {
-                    timer("Insert key",1000)
+                    timer("Insert key",500)
                 }
+            }
+        }
+        if(clk("use"))
+        {
+            if(owner():keyUse())
+            {
+                if(owner():aimEntity() == Tardis && Owner:pos():distance(Tardis:pos()) < 68 && Owner != Tardis:tardisPilot())
+                {
+                    timer("Locked door",100)
+                }
+            }
+        }
+        
+        if(clk("Locked door"))
+        {
+            if(Tardis:tardisLocked())
+            {
+                Tardis:soundPlay(105,0,"doors/door_lock_1.wav")
+                printColor(TardisChatColor,""+TardisName+": Doors are locked, silly.")
             }
         }
         
@@ -328,8 +404,8 @@ if(ChipActive == "true")
             else
             {
                 printColor(TardisChatColor,""+TardisName+": Door lock nonfunctional without power.")
-                Tardis:soundPlay(3,0,"doctorwho1200/copper/rewrite/error.wav",100)
-                Interior:soundPlay(3,0,"doctorwho1200/copper/rewrite/error.wav",100)
+                Tardis:soundPlay(3,0,"doctorwho1200/copper/rewrite/error.wav")
+                Interior:soundPlay(4,0,"doctorwho1200/copper/rewrite/error.wav")
             }
         }
             
@@ -340,9 +416,9 @@ if(ChipActive == "true")
             Fuel_Percent = round(Fuel)
             if(Fuel > 0) 
             {
-                if(Main_Keyboard == "Dump Fuel" && Fuel > 1)
+                if(Main_Keyboard == "Dump Fuel" && Fuel > 0)
                 {
-                    Fuel = 1
+                    Fuel = 0
                 }
                 if(Tardis:tardisPowered()) 
                 {
@@ -369,10 +445,27 @@ if(ChipActive == "true")
                     Fuel -= 0.0010
                     Artron_Capacitor -= 0.002
                 }
-                elseif(Tardis:tardisPowered() == 0 && Fuel < 100 && Tardis:tardisIsHADS() && Artron_Capacitor > 0) 
+                elseif(Tardis:tardisPowered() == 0 && Fuel_Percent < 100 && Tardis:tardisIsHADS() && Artron_Capacitor > 0) 
                 {
                     Fuel += 0.020
                     Artron_Capacitor -= 0.003
+                    holoAlpha(1,255)
+                    holoAlpha(2,255)
+                    holoAlpha(5,255)
+                    holoAlpha(4,255)
+                    if(DoOnce6 == 0)
+                    {
+                        Tardis:soundPlay(104,0,"ambient/atmosphere/city_beacon_loop1.wav")
+                        DoOnce6 = 1
+                    }
+                }
+                elseif(Tardis:tardisPowered() || Tardis:tardisIsHADS() == 0 || Fuel_Percent > 99)
+                {
+                    holoAlpha(1,0)
+                    holoAlpha(2,0)
+                    holoAlpha(5,0)
+                    holoAlpha(4,0)
+                    DoOnce6 = 0
                 }
             }
                         
@@ -400,14 +493,19 @@ if(ChipActive == "true")
             }
             if(Fuel_Percent < 100 && FuelBoost:isValid() && Tardis:tardisIsHADS() && Tardis:tardisPowered() == 0) 
             {
-                FuelAbsorb -= 2
+                FuelAbsorb -= 1
                 FuelBoost:setAlpha(FuelAbsorb)
-                Fuel += 0.1
             }
-            if(FuelAbsorb <= 1)
+            if(FuelAbsorb == 0)
             {
                 FuelBoost:propDelete()
-                FuelAbsorb = 255
+                if(FuelBoost:isValid() == 0 && Fuel_Percent < 1 && Main_Keyboard != "Dump Fuel")
+                {
+                    Tardis:soundPlay(102,0,"doctorwho1200/copper/boringer.wav")
+                    Interior:soundPlay(103,0,"doctorwho1200/copper/boringer.wav")
+                    FuelAbsorb = 255
+                    Fuel += 1
+                }
             }
             if(Tardis:tardisHealth() <= 10)
             {
@@ -441,6 +539,10 @@ if(ChipActive == "true")
                     printColor(TardisChatColor,""+TardisName+": Fuel cells depleted, shutting down.")
                     DoOnce4 = 1
                 }
+            }
+            else
+            {
+                DoOnce4 = 0
             }
         }
 artron()
@@ -569,6 +671,38 @@ artron()
             }
         }
         
+    #[ Tardis Paradoxes ]#
+        if(T == 31 && Tardis:tardisInVortex() && Paradox == 0)
+        {
+            printColor(TardisChatColor,""+TardisName+": Paradox! Attempting to counteract it.")
+            Interior:soundPlay(5,0,"doctorwho1200/copper/rewrite/error.wav")
+            timer("Paradox avoid",10000)
+            Paradox = 1
+        }
+        if(T == 32 && Tardis:tardisInVortex() && Paradox == 1)
+        {
+            stoptimer("Paradox avoid")
+            printColor(TardisChatColor,""+TardisName+": Counteraction success.")
+            Paradox = 0
+        }
+        if(clk("Paradox avoid") && Paradox == 1)
+        {
+            printColor(TardisChatColor,""+TardisName+": Unable to counteract, taking damage!")
+            Interior:soundPlay(5,0,"doctorwho1200/copper/rewrite/explosion.wav")
+            Debris = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,150),ang(0,0,0),1)
+            Debris2 = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,100),ang(0,0,0),1)
+            Debris3 = propSpawn("models/props_c17/oildrum001_explosive.mdl",Interior:pos()+vec(0,0,50),ang(0,0,0),1)
+            
+            Debris:setAlpha(0)
+            Debris2:setAlpha(0)
+            Debris2:setAlpha(0)
+            
+            Debris:propBreak()
+            Debris2:propBreak()
+            Debris3:propBreak()
+            Paradox = 0
+        }
+        
     #[ Tardis extra damage effects ]#
         
         if(T == 100) 
@@ -647,40 +781,48 @@ artron()
             Tardis:tardisFastReturn()
         }
         
-    #[ Companion Retrival ]#
-        if(isSinglePlayer() == 0)
+        if(Main_Keyboard == "Have fun.") 
         {
-            findByClass("player")
-            findPlayerByName(""+Main_Keyboard+"")
-            findExcludePlayer(Owner)
-            
-            Target = find()
-            
-            if(Targetting == 1 && Tardis:tardisMoving() == 0 && Tardis:tardisPhyslocked() && Tardis:tardisPowered()) 
+            if(PersonalityChipActive == "true")
             {
-                if(Target:isValid() && Target:isAlive() && Target:pos():isInWorld()) 
+                if(Engaged != 1 && PersonalityActive == 0)
                 {
-                    Tardis:tardisDemat(Target:pos()+vec(0,200,0),ang(0,180,0))
+                    printColor(TardisChatColor,""+TardisName+": Yay! My own control! Thank you!")
+                    Engaged = 1
+                    PersonalityActive = 1
                 }
             }
-        
-        #[ Tardis Friends ]#
-    
-            findInSphere(Tardis:pos(),5000000) 
-            findSortByDistance(Tardis:pos())                      
-            findIncludeClass("player")                
-            findExcludePlayer(Owner)      
-                 
-            Companion = find()                                
-            
-            Dist = Companion:pos():distance(Tardis:pos())
-            
-            if(Tardis:tardisMoving() == 0 && Tardis:tardisFlying() == 0 && Dist < 400 && Companion:isSteamFriend(Owner) && Tardis:tardisLocked()) 
+            else
             {
-                Tardis:tardisLock()
+                hint("Personality extention not enabled. Enable at start of code.",10)
             }
         }
-        
+        if(Main_Keyboard == "My turn.")
+        {
+            if(Engaged != 0 && PersonalityActive == 1)
+            {
+                printColor(TardisChatColor,""+TardisName+": Aww, okay.")
+                Engaged = 0
+                PersonalityActive = 0
+            }
+        }
+        if(Main_Keyboard == "Monitor yourself.")
+        {
+            if(Preserving != 1)
+            {
+                printColor(TardisChatColor,""+TardisName+": Oh, of course.")
+                Preserving = 1
+            }
+        }
+        if(Main_Keyboard == "Trust me.")
+        {
+            if(Preserving != 0)
+            {
+                printColor(TardisChatColor,""+TardisName+": As long as I don't blow up.")
+                Preserving = 0
+            }
+        }
+
     #[ Random Skin Upon Auto-Repair ]#
         
         if(Tardis:tardisSelfrepairing()) 
@@ -754,8 +896,6 @@ artron()
         {
             Tardis:tardisMaterialise()
         }
-        
-    
     #[ Component Damage and Repair ]#
         function tardisComponents()
         {
@@ -990,44 +1130,52 @@ tardisComponents()
         timer("Reset",300)
         Console[2041] = 1
     }
-    if(Fuel_Percent > 0)
+    if(Fuel_Percent > 0 && Booted == 1)
     {
         if(KeyUse == 0) 
         {
-            Console:writeString(""+TardisName+"'s Interface",0,0,25,67,1)
-            Console:writeString(">Shields are at "+ShieldPower+"%",0,2,25,0,0)
-            Console:writeString(">Artron levels are at "+Fuel_Percent+"%",0,3,25,0,0)
-            Console:writeString(">Hull integrity at "+Tardis:tardisHealth()+"%",0,4,25,0,0)
-            Console:writeString(">Owner's Health is "+Owner:health()+"%",0,5,25,0,0)
-            Console:writeString(">Current keyboard input: "+Main_Keyboard+"",0,6,25,0,0)
-            Console:writeString(">Current target co-ords:      "+round(Companion:pos())+"",0,8,24,0,0)
-            Console:writeString(">Present temperal co-ords:    "+round(time("year"))+"",0,10,25,0,0)
-            Console:writeString(","+round(time("day"))+"",4,11,25,0,0)
-            Console:writeString(","+round(time("month"))+"",7,11,25,0,0)
-            Console:writeString("Escape Cords:"+EscapeVec,0,12,25,0,0)
+            Console:writeString(""+TardisName+"'s Interface",0,0,vec(255,0,0),0,1)
+            Console:writeString(">Shields are at "+ShieldPower+"%",0,2,vec(255,0,0),0,0)
+            Console:writeString(">Artron levels are at "+Fuel_Percent+"%",0,3,vec(255,0,0),0,0)
+            Console:writeString(">Hull integrity at "+Tardis:tardisHealth()+"%",0,4,vec(255,0,0),0,0)
+            Console:writeString(">Owner's Health is "+Owner:health()+"%",0,5,vec(255,0,0),0,0)
+            Console:writeString(">Current keyboard input: "+Main_Keyboard+"",0,6,vec(255,0,0),0,0)
+            Console:writeString(">Current target co-ords:      "+round(Companion:pos())+"",0,8,vec(255,0,0),0,0)
+            Console:writeString(">Present temperal co-ords:    "+round(time("year"))+"",0,10,vec(255,0,0),0,0)
+            Console:writeString(","+round(time("day"))+"",4,11,vec(255,0,0),0,0)
+            Console:writeString(","+round(time("month"))+"",7,11,vec(255,0,0),0,0)
+            Console:writeString("Escape Cords:"+EscapeVec,0,12,vec(255,0,0),0,0)
         }
         else
         {
-            Console:writeString("Component Status Interface",2,0,25,67,1)
-            Console:writeString(">Fluid Links "+round(Fluid_Links)+"%",0,2,25,0,0)
-            Console:writeString(">Manual Nav. "+round(Manual_Navigations)+"%",0,3,25,0,0)
-            Console:writeString(">Red Thermo. "+round(Red_Thermocouplings)+"%",0,4,25,0,0)
-            Console:writeString(">Blue Thermo. "+round(Blue_Thermocouplings)+"%",0,5,25,0,0)
-            Console:writeString(">Green Thermo. "+round(Green_Thermocouplings)+"%",0,6,25,0,0)
-            Console:writeString(">Chrono. Astro. "+round(Chronometric_Astrometer)+"%",0,7,25,0,0)
-            Console:writeString(">Isomorphic Circuitry "+round(Isomorphic_Circuitry)+"%",0,8,25,0,0)
-            Console:writeString(">Chameleon Circuit "+round(Chameleon_Circuit)+"%",0,9,25,0,0)
-            Console:writeString(">Artron Capacitor "+round(Artron_Capacitor)+"%",0,10,25,0,0)
-            Console:writeString(">Forcefield Generator "+round(Forcefield_Generator)+"%",0,11,25,0,0)
+            Console:writeString("Component Status Interface",2,0,vec(255,0,0),67,1)
+            Console:writeString(">Fluid Links "+round(Fluid_Links)+"%",0,2,vec(255,0,0),0,0)
+            Console:writeString(">Manual Nav. "+round(Manual_Navigations)+"%",0,3,vec(255,0,0),0,0)
+            Console:writeString(">Red Thermo. "+round(Red_Thermocouplings)+"%",0,4,vec(255,0,0),0,0)
+            Console:writeString(">Blue Thermo. "+round(Blue_Thermocouplings)+"%",0,5,vec(255,0,0),0,0)
+            Console:writeString(">Green Thermo. "+round(Green_Thermocouplings)+"%",0,6,vec(255,0,0),0,0)
+            Console:writeString(">Chrono. Astro. "+round(Chronometric_Astrometer)+"%",0,7,vec(255,0,0),0,0)
+            Console:writeString(">Isomorphic Circuitry "+round(Isomorphic_Circuitry)+"%",0,8,vec(255,0,0),0,0)
+            Console:writeString(">Chameleon Circuit "+round(Chameleon_Circuit)+"%",0,9,vec(255,0,0),0,0)
+            Console:writeString(">Artron Capacitor "+round(Artron_Capacitor)+"%",0,10,vec(255,0,0),0,0)
+            Console:writeString(">Forcefield Generator "+round(Forcefield_Generator)+"%",0,11,vec(255,0,0),0,0)
         }
+    }
+    elseif(Booted == 1)
+    {
+        Console:writeString(">----------------------------<",0,7,vec(80,0,0),vec(255,0,0),1)
+        Console:writeString(">--------- TARDIS -----------<",0,8,vec(80,0,0),vec(255,0,0),1)
+        Console:writeString(">------ FUEL DEPLETED -------<",0,9,vec(80,0,0),vec(255,0,0),1)
+        Console:writeString(">----------------------------<",0,10,vec(80,0,0),vec(255,0,0),1)
     }
     else
     {
-        Console:writeString(">----------------------------<",0,7,vec(100,0,0),vec(200,0,0),1)
-        Console:writeString(">--------- TARDIS -----------<",0,8,vec(100,0,0),vec(200,0,0),1)
-        Console:writeString(">------ FUEL DEPLETED -------<",0,9,vec(100,0,0),vec(200,0,0),1)
-        Console:writeString(">----------------------------<",0,10,vec(100,0,0),vec(200,0,0),1)
+        Console:writeString(">----------------------------<",0,7,vec(255,255,255),vec(155,155,155),1)
+        Console:writeString(">---------- TARDIS ----------<",0,8,vec(255,255,255),vec(155,155,155),1)
+        Console:writeString(">-------- BOOTING UP --------<",0,9,vec(255,255,255),vec(155,155,155),1)
+        Console:writeString(">----------------------------<",0,10,vec(255,255,255),vec(155,155,155),1)
     }
+    
 #[ Tardis Interior Sounds (REQUIRES REWRITE OF 2010 TARDIS ADDON) ]#
     if(Tardis:tardisPowered() == 1 && Tardis:tardisSelfrepairing() == 0 && Loop == 1)
     {
@@ -1069,158 +1217,5 @@ tardisComponents()
     else
     {
         RSLoop = 1
-    }
-
-#[ Ep1 Program - Cookiemorph's code, edited for this chip ]#
-    
-    runOnChat(1)
-    Cmd = owner():lastSaid():explode(" ")
-    if(Cmd[1,string] == "!ep1")
-    {
-        hideChat(1)
-        if(DoOnce6 == 0)
-        {
-            EpDo = 1
-            DoOnce6 = 1
-        }
-        else
-        {
-            EpDo = 0
-        }
-    }
-    else
-    {
-        DoOnce6 = 0
-    }
-    if(EpDo == 1)
-    {
-        if(Tardis:tardisPowered() == 1)
-        {
-            if(Program1 == 0)
-            {
-                Program1 = 1
-            }
-            else
-            {
-                Program1 = 0
-            }
-            if(Tardis:tardisLongflighted() == 0)
-            {
-                Tardis:tardisLongflight()
-            }
-            else{}
-            if(Tardis:tardisIsomorphic() == 0)
-            {
-                Tardis:tardisIsomorph()
-            }
-            else{}
-            if(Tardis:tardisLocked() == 0)
-            {
-                Tardis:tardisLock()
-            }
-            else{}
-            Tardis:tardisDemat(EscapeVec,EscapeAng)
-            timer("teleportwait",5000)
-        }
-    }
-    if(clk("teleportwait"))
-    {
-    if(Tardis:tardisMoving() == 1)
-    {
-        holoPos(1,Interior:pos()-vec(-60,-80,47))
-        holoAng(1,ang(0,52,0))
-        timer("Holoappear",19000)
-    }
-    }
-    if(clk("Holoappear"))
-    {
-        if(Program1 == 1)
-        {
-            holoAlpha(1,255)
-            Holo:soundPlay(11,50,"buttons/button1.wav")
-            timer("message1",1000)
-        }
-        else
-        {
-            holoAlpha(1,0)
-        }
-    }
-    if(clk("message1"))
-    {
-        Holo:soundPlay(12,1,"hl1/fvox/warning.wav")
-        soundVolume(1,1000)
-        timer("message2",1200)
-    }   
-    if(clk("message2"))
-    {
-        Holo:soundPlay(13,5,"hl1/fvox/near_death.wav")
-        soundVolume(2,100)
-        timer("Holodisappear",5000)
-    }
-    if(clk("Holodisappear"))
-    {
-        Holo:soundPlay(14,50,"buttons/button18.wav")
-        holoAlpha(1,0)
-        holoPos(1,Interior:pos())
-        if(Tardis:tardisMoving() == 1)
-        {
-            Tardis:tardisMaterialise()
-        }
-        timer("landed",20000)
-    }
-    if(clk("landed"))
-    {
-        soundStop(11)
-        soundStop(12)
-        soundStop(13)
-        soundStop(14)
-        if(Tardis:tardisLongflighted() == 1)
-        {
-            Tardis:tardisLongflight()
-        }else{}
-        if(Tardis:tardisPowered() == 1)
-        {
-            Tardis:tardisPower()
-        }
-        else{}
-        Program1 = 0
-    }
-
-    if(Cmd[1,string] == "!pickup")
-    {
-        hideChat(1)
-        if(DoOnce7 == 0)
-        {
-            PuDo = 1
-            DoOnce7 = 1
-        }
-        else
-        {
-            PuDo = 0
-        }
-    }
-    else
-    {
-        DoOnce7 = 0
-    }
-    if(PuDo == 1)
-    {
-        if(Tardis:tardisPowered() == 1)
-        {
-            if(Program1 == 0)
-            {
-                Program1 = 1
-            }
-            else
-            {
-                Program1 = 0
-            }
-            if(Tardis:tardisLongflighted() == 1)
-            {
-                Tardis:tardisLongflight()
-            }
-            else{}
-            Tardis:tardisDemat(Owner:pos(),Owner:angles())
-        }
     }
 } # End Code Mark

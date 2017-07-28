@@ -1,7 +1,8 @@
 @name TPC V6.6+ Holographic Systems
-@model models/bull/gates/processor_mini.mdl
-@inputs Fuel_Percent ShieldPower HologramsActive Status:array Extrapolator_Shielding
-@persist [Tardis Interior Owner Companion Player]:entity
+#@model models/bull/gates/processor_mini.mdl
+@model models/cheeze/wires/wireless_card.mdl
+@inputs Status:array
+@persist [Tardis Interior Owner Companion Player]:entity 
 @trigger all
 
 interval(60)
@@ -12,8 +13,8 @@ Players = array(players(), playersAdmins(), playersSuperAdmins())
 Companions = array(Owner:steamFriends())
 
 #[ Holograms ]#
-    
-if(HologramsActive == 1)
+
+if(Status[7,number] == 1)
 {
 #[ Tardis Shield ]#
     holoCreate(1)
@@ -21,7 +22,7 @@ if(HologramsActive == 1)
     holoPos(1,Interior:toWorld(vec(-26,42,21.5)))
     holoAng(1,ang(0,0,0))
     holoScale(1,vec(0.9,0.9,0.9))
-        
+
 #[ Tardis Status Exterior ]#
     holoCreate(2)
     holoModel(2,"models/drmatt/tardis/exterior.mdl")
@@ -38,7 +39,7 @@ if(HologramsActive == 1)
     holoScale(4,vec(0.07,0.07,0.07))
     holoBodygroup(4,2,1)
     holoBodygroup(4,1,1)
-        
+
 #[ Tardis Status Background ]#
     holoCreate(5)
     holoModel(5,"models/drmatt/tardis/exterior.mdl")
@@ -47,18 +48,18 @@ if(HologramsActive == 1)
     holoScale(5,vec(0.07,0.07,0.07))
 }
 #[ Tardis Status Holo ]#
-        
-        if(Status[1,number] > 50 && Tardis:tardisHealth() < 101)
+
+        if(Status[1,number] > 50 && Status[1,number] < 101)
         {
             holoColor(2,vec(21,255,14))
             holoAlpha(2,170)
         }
-        elseif(Status[1,number] > 20 && Tardis:tardisHealth() < 51)
+        elseif(Status[1,number] > 20 && Status[1,number] < 51)
         {
             holoColor(2,vec(255,150,0))
             holoAlpha(2,170)
         }
-        elseif(Status[1,number] < 21 && Tardis:tardisHealth() > 0)
+        elseif(Status[1,number] < 21 && Status[1,number] > 0)
         {
             holoColor(2,vec(255,0,0))
             holoAlpha(2,170)
@@ -68,44 +69,44 @@ if(HologramsActive == 1)
             holoColor(2,vec(random(100,250),random(0,10),random(12,22)))
             holoAlpha(2,random(10,200))
         }
-        
-        if(Fuel_Percent > 50 && Fuel_Percent < 101)
+
+        if(Status[5,number] > 50 && Status[5,number] < 101)
         {
             holoColor(5,vec(21,255,14))
         }
-        elseif(Fuel_Percent > 20 && Fuel_Percent < 51)
+        elseif(Status[5,number] > 20 && Status[5,number] < 51)
         {
             holoColor(5,vec(255,150,0))
         }
-        elseif(Fuel_Percent < 21 && Fuel_Percent > 0)
+        elseif(Status[5,number] < 21 && Status[5,number] > 0)
         {
             holoColor(5,vec(255,0,0))
         }
-        elseif(Fuel_Percent == 0)
+        elseif(Status[5,number] == 0)
         {
             holoColor(5,vec(random(100,250),random(0,10),random(12,22)))
         }
-        
-        if(Tardis:tardisMoving() == 1) 
+
+        if(Tardis:tardisMoving() == 1)
         {
-            if(Tardis:tardisInVortex() == 0) 
+            if(Tardis:tardisInVortex() == 0)
             {
                 holoAlpha(1,30)
             }
         }
-        
-        if(Tardis:tardisInVortex() && Extrapolator_Shielding == 1) 
+
+        if(Tardis:tardisInVortex() && Status[8,number] == 1)
         {
-            holoAlpha(1,ShieldPower)
+            holoAlpha(1,Status[6,number])
         }
-        
-        if(Tardis:tardisInVortex() == 0 && Tardis:tardisMoving() == 0) 
+
+        if(Tardis:tardisInVortex() == 0 && Tardis:tardisMoving() == 0)
         {
             holoAlpha(1,0)
         }
     #[ Shield Hologram ]#
-        
-        if(Extrapolator_Shielding == 1) 
+
+        if(Status[8,number] == 1)
         {
             holoColor(1,vec(65,206,255))
         }
@@ -113,28 +114,28 @@ if(HologramsActive == 1)
         {
             holoAlpha(1,0)
         }
-        
+
     #[ Tardis HoloStatus ]#
-        
+
         holoAng(2,Tardis:angles())
         holoSkin(2,Tardis:getSkin())
-        
-        if(Tardis:tardisPowered() == 1) 
+
+        if(Tardis:tardisPowered() == 1)
         {
             holoBodygroup(2,2,1)
         }
-        if(Tardis:tardisPowered() == 0) 
+        if(Tardis:tardisPowered() == 0)
         {
             holoBodygroup(2,2,0)
         }
-        
-        
+
+
 #[ Tardis Materialize Stuff ]#
-        
+
         holoSkin(4,Tardis:getSkin())
         holoAng(5,Tardis:angles())
-        
-        if(Tardis:tardisVisible() == 0 && Tardis:tardisMoving() == 0) 
+
+        if(Tardis:tardisVisible() == 0 && Tardis:tardisMoving() == 0)
         {
             holoAlpha(4,30)
         }
@@ -142,17 +143,17 @@ if(HologramsActive == 1)
         {
             holoAlpha(4,255)
         }
-        
-        if(Tardis:tardisMoving()) 
+
+        if(Tardis:tardisMoving())
         {
             holoAlpha(4,Tardis:getAlpha())
         }
-    
+
 #[ Holograms Visablility ]#
 
 if(isSinglePlayer() == 0)
 {
-    if(Player:pos():distance(Interior:pos()) < 800) 
+    if(Player:pos():distance(Interior:pos()) < 800)
     {
         holoVisible(1,Player,1)
         holoVisible(2,Player,1)
@@ -218,8 +219,8 @@ if(isSinglePlayer() == 0)
         holoVisible(29,Player,0)
         holoVisible(30,Player,0)
     }
-    
-    if(Companion:pos():distance(Interior:pos()) < 800) 
+
+    if(Companion:pos():distance(Interior:pos()) < 800)
     {
         holoVisible(1,Companion,1)
         holoVisible(2,Companion,1)
@@ -285,8 +286,8 @@ if(isSinglePlayer() == 0)
         holoVisible(29,Companion,0)
         holoVisible(30,Companion,0)
     }
-    
-    if(Owner:pos():distance(Interior:pos()) < 800) 
+
+    if(Owner:pos():distance(Interior:pos()) < 800)
     {
         holoVisible(1,Owner,1)
         holoVisible(2,Owner,1)

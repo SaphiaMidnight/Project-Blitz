@@ -3,6 +3,7 @@
 @model models/cheeze/wires/wireless_card.mdl
 @inputs Status:array
 @persist [Tardis Interior Owner Companion Player]:entity 
+@persist EoHReserves CW CCW Depleted
 @trigger all
 
 interval(60)
@@ -11,6 +12,11 @@ Tardis = entity():isConstrainedTo():tardisGet()
 Owner = Tardis:owner()
 Players = array(players(), playersAdmins(), playersSuperAdmins())
 Companions = array(Owner:steamFriends())
+
+EoHReserves = Status[5,number]*100
+CCW = CCW*1+5
+CW = CW*1-5
+
 
 #[ Holograms ]#
 
@@ -148,6 +154,50 @@ if(Status[7,number] == 1)
         {
             holoAlpha(4,Tardis:getAlpha())
         }
+
+#[ Eye of Harmony as Fuel Status ]#
+
+if(first())
+{
+    holoCreate(6, Interior:pos()+vec(156,-380,-132), vec(1.5,1.5,3), ang(0,0,180), vec(255,255,255), "models/props_combine/combine_mine01.mdl")               #Bottom
+    holoCreate(7, holoEntity(6):pos()+vec(0,0,85), vec(1.5,1.5,3), ang(0,0,0), vec(255,255,255), "models/props_combine/combine_mine01.mdl")                   #Top
+    holoCreate(8, holoEntity(6):pos()+vec(0,0,-5), vec(1,1,2), ang(0,0,0), vec(255,255,255), "models/props_combine/combine_mine01.mdl")                       #Bottom Rotation
+    holoCreate(9, holoEntity(6):pos()+vec(0,0,90), vec(1,1,2), ang(0,0,180), vec(255,255,255), "models/props_combine/combine_mine01.mdl")                     #Top Rotation
+    
+    holoCreate(13, holoEntity(6):pos()+vec(0,0,20), vec(0.1,0.1,1.5), ang(0,0,180), vec(255,255,255), "models/props_combine/combine_mine01.mdl")                #Bottom Extra
+    holoCreate(14, holoEntity(6):pos()+vec(0,0,65), vec(0.1,0.1,1.5), ang(0,0,0), vec(255,255,255), "models/props_combine/combine_mine01.mdl")                  #Top Extra
+    
+    holoCreate(15, holoEntity(6):pos()+vec(0,0,25), vec(0.3,0.3,0.5), ang(0,0,180), vec(255,255,255), "models/props_combine/combine_mine01.mdl")                #Bottom Extra-Extra
+    holoCreate(16, holoEntity(6):pos()+vec(0,0,60), vec(0.3,0.3,0.5), ang(0,0,0), vec(255,255,255), "models/props_combine/combine_mine01.mdl")                  #Top Extra-Extra
+    
+    holoCreate(10, holoEntity(6):pos()+vec(0,0,42.5), vec(2.5,2.5,2.5), ang(0,0,0), vec(255,200,255), "models/holograms/hq_icosphere.mdl")                    #Star
+    holoMaterial(10, "models/props_lab/cornerunit_cloud")                                                                                                     #Star Material
+    
+    holoCreate(11, holoEntity(6):pos()+vec(0,0,0), vec(0.05,0.05,0.03), ang(0,0,0), vec(255,255,255), "models/props_combine/combine_citadelbeacon.mdl")       #Energy Beam Up
+    holoCreate(12, holoEntity(6):pos()+vec(0,0,80), vec(0.05,0.05,0.03), ang(0,0,180), vec(255,255,255), "models/props_combine/combine_citadelbeacon.mdl")    #Energy Beam Down
+}
+
+
+
+if(Status[5,number] > 0)
+{
+    holoAng(8, ang(0,CW*EoHReserves/1000,0))
+    holoAng(9, ang(0,CCW*EoHReserves/1000,180))
+    holoScale(10, vec(EoHReserves/4000,EoHReserves/4000,EoHReserves/4000))
+}
+
+if(Status[5,number] < 1)
+{
+    holoAlpha(10, 0)
+    holoAlpha(11, 0)
+    holoAlpha(12, 0)
+}
+else
+{
+    holoAlpha(10, 255)
+    holoAlpha(11, 255)
+    holoAlpha(12, 255)
+}
 
 #[ Holograms Visablility ]#
 

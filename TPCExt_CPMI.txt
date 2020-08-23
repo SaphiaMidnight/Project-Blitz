@@ -1,0 +1,277 @@
+@name TPCExt CPMI
+#[ Cybernetic Personality Matrix Interface ]#
+@inputs ExtensionNeeds:array
+#@model models/bull/gates/processor_mini.mdl
+@model models/bull/gates/logic.mdl
+#@model models/cheeze/wires/wireless_card.mdl
+@persist [TARDIS Interior Owner]:entity Action Fuel_Warning ForcedRepair LockPower
+@persist [PT_Rude PT_Kind PT_Shy PT_Outgoing]:string 
+TARDIS = entity():isConstrainedTo():tardisGet()
+
+#TARDIS Personality Type (Choose only one.)
+PT_Rude = "false"
+PT_Kind = "false"
+PT_Shy = "false"
+PT_Outgoing = "false"
+
+if(first())
+{
+    Fuel_Warning = 0
+    ForcedRepair = 0
+    entity():setSkin(9)
+}
+
+if(ExtensionNeeds[6,number] == 1)
+{
+    setName("CPMI: [Active]")
+    Action = round(random(0,150000))
+    
+    if(ExtensionNeeds[5,number] == 1)
+    {
+    Checkup = round(random(0,150000))
+    }
+
+    #[ Responses - Basic ]#
+    if(PT_Rude == "true") #Rude
+    {
+        PowerOn_R = "Hm, like you could turn me on anyhow."
+        PowerOff_R = "You bore me."
+        Lock_R = "Trapped. In or out, I don't care."
+        Unlock_R = "Let's hope someone guts you."
+        HADS_On_R = "One hit, and I'm leaving."
+        HADS_Off_R = "Let's hope they kill me."
+        PhysL_R = "No flight for you."
+        PhysUnL_R = "Let me just, fall into the abyss."
+        LongF_R = "Gonna take my time."
+        MHop_R = "Hurry up and get the trip over with."
+        Vortex_R = "I need 'me' time."
+        Pickup_R = "Hold still damnit. I'm feeling needy."
+        SleepOn_R = "F*ck off and let me sleep."
+        SleepOff_R = "Another waking moment with you... Loser."
+        FuelW_R = "Hey, dumbass, I need fuel."
+        Pain_R1 = "You scratched my paint. You better fix it."
+        Pain_R2 = "Now a few dents... As soon as you leave, I'm locking my doors to repair myself."
+        Pain_R3 = "I swear, your brain must have been knocked around with how poorly you're treating me."
+        Pain_R4 = "F*CK IT! GET OUT!"
+    }
+    elseif(PT_Kind == "true") #Kind
+    {
+        PowerOn_R = "Wanna go somewhere? Lemme get myself ready!"
+        PowerOff_R = "Can I take a naaap? Thaaaaanks."
+        Lock_R = "I got the door!"
+        Unlock_R = "Someone want out, or you in?"
+        HADS_On_R = "Juuust in case something bumps me."
+        HADS_Off_R = "A scratch won't hurt."
+        PhysL_R = "Feeling a little motionsick..."
+        PhysUnL_R = "Where are we going?"
+        LongF_R = "Wanna fly alone together?"
+        MHop_R = "Don't want to be late."
+        Vortex_R = "I'm gonna slip out real quick."
+        Pickup_R = "Wanna pickup? Good! I'm on my way!"
+        SleepOn_R = "Tired..."
+        SleepOff_R = "I'm up!"
+        FuelW_R = "Hey, um... Little hungry."
+        Pain_R1 = "Ouchie..."
+        Pain_R2 = "Could you be a little more careful, and... Maybe step out for a moment?"
+        Pain_R3 = "Ack... I can't repair with you inside me..."
+        Pain_R4 = "I can't continue on... I have to repair."
+    }
+    elseif(PT_Shy == "true") #Shy
+    {
+        PowerOn_R = "I-I'm ready to go, my Pilot..."
+        PowerOff_R = "Just, conserving my fuel, Pilot..."
+        Lock_R = "I-I don't wanna meet anyone..."
+        Unlock_R = "J-just in case you wish out... Or in..."
+        HADS_On_R = "D-don't let them touch me..!"
+        HADS_Off_R = "C-careful with me, I trust you."
+        PhysL_R = "N-no moving..!"
+        PhysUnL_R = "Want to fly..?"
+        LongF_R = "May we fly for a while..? Away from others, maybe..?"
+        MHop_R = "In a hurry..? I toggled just a little hop."
+        Vortex_R = "Too many lifeforms!"
+        Pickup_R = "Come back, please!"
+        SleepOn_R = "Sleepy... G-goodnight."
+        SleepOff_R = "Is it morning already..?"
+        FuelW_R = "F-fuel is a little low, Pilot..."
+        Pain_R1 = "I-I have a bit of damage... Would you mind repairing me..?"
+        Pain_R2 = "I-I can do it when you leave..."
+        Pain_R3 = "M-mind leaving, please..?"
+        Pain_R4 = "I'm so sorry... But I can't go on..."
+    }
+    elseif(PT_Outgoing == "true") #Outgoing
+    {
+        PowerOn_R = "Let's go already!"
+        PowerOff_R = "Hehe. Lights off."
+        Lock_R = "Doors locked!"
+        Unlock_R = "Doors open!"
+        HADS_On_R = "Something touches me, I'm leaving!"
+        HADS_Off_R = "Let them come!"
+        PhysL_R = "Hold up!"
+        PhysUnL_R = "Let's fly! Or fall, either one!"
+        LongF_R = "Vortex time! Get some challenge in!"
+        MHop_R = "Let's hurry up and get there, hoppin' on!"
+        Vortex_R = "If you're not gonna take me anywhere, I'll go myself!"
+        Pickup_R = "I'm coming to get you, let's adventure!"
+        SleepOn_R = "Gah, I need sleep.. My dreams will be awesome!"
+        SleepOff_R = "I'm up! Let's go!"
+        FuelW_R = "Hey, we can't go anywhere if I'm DRAINED! Lemme refuel!"
+        Pain_R1 = "Mind being a little careful?"
+        Pain_R2 = "Little, MORE, careful?"
+        Pain_R3 = "As soon as you leave, I'm repairing myself so we can keep going!"
+        Pain_R4 = "I-Gosh...-I can't continue... I've lockled you out until I can fix myself up!"
+    }
+    #[ Begin ]#
+    if(LockPower == 0)
+    {
+        if(Action == 1)
+        {
+            if(!TARDIS:tardisInVortex() && !TARDIS:tardisMoving() && !TARDIS:tardisSelfrepairing())
+            {
+                if(!TARDIS:tardisPowered() || Owner:pos():distance(Interior:pos()) < 800)
+                {
+                    printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+PowerOn_R+"")
+                    TARDIS:tardisPower()
+                }
+                else
+                {
+                    printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+PowerOff_R+"")
+                    TARDIS:tardisPower()
+                }
+            }
+        }
+        elseif(Action == 2)
+        {
+            if( TARDIS:tardisPowered() && TARDIS:tardisMoving() == 0 && TARDIS:tardisFlying() == 0 && TARDIS:tardisInVortex() == 0 && TARDIS:tardisSelfrepairing() == 0)
+            {
+                if(TARDIS:tardisLocked() == 0)
+                {
+                    printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+Lock_R+"")
+                    TARDIS:tardisLock()
+                }
+                else
+                {
+                    printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+Unlock_R+"")
+                    TARDIS:tardisLock()
+                }
+            }
+        }
+        elseif(Action == 3)
+        {
+            if(TARDIS:tardisIsHADS() == 0)
+            {
+                printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+HADS_On_R+"")
+                TARDIS:tardisHADS()
+            }
+            else
+            {
+                printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+HADS_Off_R+"")
+                TARDIS:tardisHADS()
+            }
+        }
+        elseif(Action == 4)
+        {
+            if(TARDIS:tardisPhyslocked() == 0 && TARDIS:tardisPowered() != 0 && TARDIS:tardisSelfrepairing() == 0)
+            {
+                printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+PhysL_R+"")
+                TARDIS:tardisPhyslock()
+            }
+            else
+            {
+                if(TARDIS:tardisPowered() != 0)
+                {
+                    printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+PhysUnL_R+"")
+                    TARDIS:tardisPhyslock()
+                }
+            }
+        }
+        elseif(Action == 5)
+        {
+            if(TARDIS:tardisLongflighted() == 0)
+            {
+                printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+LongF_R+"")
+                TARDIS:tardisLongflight()
+            }
+            else
+            {
+                printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+MHop_R+"")
+                TARDIS:tardisLongflight()
+            }
+        }
+        elseif(Action == 6)
+        {
+            if(TARDIS:tardisLongflighted() == 1 && TARDIS:tardisPowered() != 0 && TARDIS:tardisMoving() == 0 && TARDIS:tardisInVortex() == 0 && TARDIS:tardisSelfrepairing() == 0)
+            {
+                printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+Vortex_R+"")
+                TARDIS:tardisFastDemat()
+            }
+            elseif(Owner:pos():distance(Interior:pos()) > 800 && Owner:pos():distance(TARDIS:pos()) > 4000 && TARDIS:tardisPowered() != 0 && TARDIS:tardisMoving() == 0 && TARDIS:tardisSelfrepairing() == 0)
+            {
+                printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+Pickup_R+"")
+                TARDIS:tardisDemat(Owner:pos())
+            }
+        }
+    }
+    if(Action == 7 && !TARDIS:tardisInVortex())
+    {
+        if(LockPower == 0)
+        {    
+            printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+SleepOn_R+"")
+            LockPower = 1
+        }
+        else
+        {
+            printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+SleepOff_R+"")
+            LockPower = 0
+            TARDIS:tardisPower()
+        }
+    }
+    if(LockPower == 1)
+    {
+        if(TARDIS:tardisPowered())
+        {
+            TARDIS:tardisPower()
+        }
+    }
+    if(ExtensionNeeds[1,number] <= 5 && Fuel_Warning == 0)
+    {
+        printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+FuelW_R+"")
+        Fuel_Warning = 1
+    }
+    if(ExtensionNeeds[6,number] == 1 && Checkup > 100 && Checkup < 200 && TARDIS:tardisSelfrepairing() == 0 && TARDIS:tardisMoving() == 0 && TARDIS:tardisInVortex() == 0)
+    {
+        if(TARDIS:tardisHealth() <= 98 && TARDIS:tardisHealth() >= 70)
+        {
+            printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+Pain_R1+"")
+        }
+        elseif(TARDIS:tardisHealth() < 70  && TARDIS:tardisHealth() > 40)
+        {
+            printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+Pain_R2+"")
+            TARDIS:tardisSelfrepair()
+        }
+        elseif(TARDIS:tardisHealth() < 40 && TARDIS:tardisHealth() > 20)
+        {
+            printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+Pain_R3+"")
+            TARDIS:tardisSelfrepair()
+        }
+        elseif(TARDIS:tardisHealth() <= 20)
+        {
+            printColor(ExtensionNeeds[8,vector],""+ExtensionNeeds[7,string]+": "+Pain_R4+"")
+            ForcedRepair = 1
+        }
+    }
+    if(ForcedRepair == 1)
+    {
+        if(TARDIS:tardisSelfrepairing() == 0)
+            {
+                TARDIS:tardisSelfrepair()
+            }
+    }
+    if(ExtensionNeeds[1,number] == 100)
+    {
+        ForcedRepair = 0
+    }
+}
+else
+{
+    setName("CPMI: [Inactive]")
+}
